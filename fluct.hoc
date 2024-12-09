@@ -1,0 +1,38 @@
+objref user5lst, secref, basalchildlst
+basalchildlst = new Vector()
+user5lst = new Vector()
+
+for i = 0, numuser5 - 1 user5[i] if(distance(0) <= 350) user5lst.append(i)
+
+soma secref = new SectionRef()
+
+for i = 0, secref.nchild - 1 secref.child[i] ifsec "dendrite" if(distance(0) <= 350) basalchildlst.append(i)
+
+objref gFl[user5lst.size() + basalchildlst.size()]
+
+for i = 0, user5lst.size() - 1 user5[user5lst.x[i]] gFl[i] = new Gfluct2(.5)
+for j = 0, basalchildlst.size() - 1 secref.child[basalchildlst.x[j]] {
+	gFl[i] = new Gfluct2(.5)
+	i += 1
+}
+
+proc setpercnoise() {
+
+	for i = 0, user5lst.size() - 1 {
+		gFl[i].g_e0 = $1 * 0.0121
+		gFl[i].g_i0 = $1 * 0.0573
+		gFl[i].std_e = $1 * 0.0030
+		gFl[i].std_i = $1 * 0.0066
+	}
+
+	for j = 0, basalchildlst.size() - 1 {
+		gFl[i].g_e0 = $1 * 0.0121
+		gFl[i].g_i0 = $1 * 0.0573
+		gFl[i].std_e = $1 * 0.0030
+		gFl[i].std_i = $1 * 0.0066
+		i += 1
+	}
+}
+
+setpercnoise(0)
+print user5lst.size() + basalchildlst.size()
