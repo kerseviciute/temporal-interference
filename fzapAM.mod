@@ -113,11 +113,10 @@ in the formula for theta.
 ENDCOMMENT
 
 BEFORE BREAKPOINT {
-  if (on==0) {
+  if (on == 0) {
     x = 0
-	} else {
-   x = amp * sin( 2*PI * (t-del) * f0  * 0.001 ) + amp * sin( 2*PI * (t-del) * f1  * 0.001 +phase)
-
+  } else {
+    x = amp * sin(2 * PI * (t - del) * f0 * 0.001) + amp * sin(2 * PI * (t - del) * f1 * 0.001 + phase)
   }
 }
 
