@@ -77,10 +77,6 @@ vecrms = new Vector()
 
 // Executed on "Run" press
 proc sim() {
-  // Add some noise
-  pn = 1
-  setpercnoise(pn)
-
   // Set stimulation end time
   tstop = 1005
 
