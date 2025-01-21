@@ -62,32 +62,6 @@ proc init() {
 	}
 }
 
-// Adding a single synapse
-objref synapse
-dendrite[1] synapse = new MyExp2Syn(0.2)
-synapse.tau1 = 0.5
-synapse.tau2 = 1
-synapse.e = 0 // mV
-
-// Initialize a spike source for the synapse
-objref spikeSource
-spikeSource = new BurstCell3()
-
-// Initialize stimulus
-objref stimulus
-stimulus = spikeSource.stim
-stimulus.number = 4
-stimulus.interval = 25  // ms
-stimulus.noise = 0
-stimulus.burstlen = 100  // ms
-stimulus.burstint = 250 - stimulus.burstlen // ms
-
-// Connect the synapse to the stimulus
-objref connection
-connection = new NetCon(stimulus, synapse)
-connection.delay = 50
-connection.weight = 0.0004
-
 // Initial stimulation parameters
 // (DEL, DUR, F0, F1, AMP, PHASE)
 // Set stimulation end time
