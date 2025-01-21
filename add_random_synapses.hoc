@@ -18,6 +18,11 @@ objref spikeSources[n_synapses]
 objref stimuli[n_synapses]
 objref connections[n_synapses]
 
+double synapse_dendrites[n_synapses]
+double synapse_locations[n_synapses]
+double synapse_delays[n_synapses]
+double synapse_distances[n_synapses]
+
 /*
     Count the number of apical dendrites
 */
@@ -96,6 +101,10 @@ for i = 0, n_synapses - 1 {
 
     print "The synapse will receive input at ", connections[i].delay, "ms"
     print ""
-}
 
-// TODO: keep track of where the synapses are inserted, for later visualization
+    // Save synapse information
+    synapse_dendrites[i] = dendrite_idx
+    synapse_locations[i] = loc_pos
+    synapse_delays[i] = connections[i].delay
+    synapse_distances[i] = distance_to_soma
+}
