@@ -11,3 +11,5 @@ dependencies:
   - pip 23.2.1
   - pip:
       - neuron==8.2.2
+      - kaleido
+      - imageio
