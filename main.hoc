@@ -28,6 +28,9 @@ load_file("zapstimu2.hoc")
 
 load_file("burst_cell3.hoc")
 
+// Insert synapses
+// load_file("add_random_synapses.hoc")
+
 proc init() {
 	t = 0
 	forall {
