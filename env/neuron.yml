@@ -13,3 +13,4 @@ dependencies:
       - neuron==8.2.2
       - kaleido
       - imageio
+      - seaborn

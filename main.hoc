@@ -68,7 +68,7 @@ proc init() {
 // Initial stimulation parameters
 // (DEL, DUR, F0, F1, AMP, PHASE)
 // Set stimulation end time
-tstop = 1005
+tstop = 3000
 setstim(100, tstop, 1000, 1005, 100, 0)
 
 objref vec, vecrms, apc, f
@@ -96,3 +96,5 @@ xpanel("ef slider")
 xlabel("                                      ")
 xslider(&ph, 0, 360, "changefield(100, ph, 90)")
 xpanel()
+
+random_seed = 42

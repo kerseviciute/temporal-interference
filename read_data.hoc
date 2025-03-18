@@ -1,0 +1,14 @@
+objref currvecfile, currvec
+
+currvecfile = new File()
+currvec = new Vector()
+
+currvecfile.ropen("CA3-INVIVO-STIM/l23-06-13.res.6-tt6clu2.txt")
+while (!currvecfile.eof()) {
+    currvec.append(currvecfile.scanvar())
+}
+currvecfile.close()
+
+objref vs
+vs = new VecStim()
+vs.play(currvec)

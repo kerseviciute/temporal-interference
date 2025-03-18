@@ -1,9 +1,9 @@
 /*
-    Adding 10 AMPA and 10 NMDA synapses (at the same location).
+    Adding AMPA and NMDA synapses (at the same location).
     Distribution is random but reproducible.
 */
 
-connection_weight = 0.0002
+connection_weight = 0.00009
 
 /* Initialize parameters */
 
@@ -29,6 +29,9 @@ double synapse_locations[n_synapses]
 double synapse_delays[n_synapses]
 double synapse_distances[n_synapses]
 
+stim_start = 1000 // ms
+stim_length = 1000 // ms
+
 /*
     Count the number of apical dendrites
 */
@@ -43,7 +46,7 @@ forsec "apical_dendrite" {
 */
 objref random_apical_gen
 random_apical_gen = new Random()
-random_apical_gen.MCellRan4(42) // Setting a random seed
+random_apical_gen.MCellRan4(random_seed)
 random_apical_gen.uniform(0, n_apical_dendrites)
 
 /*
@@ -52,17 +55,8 @@ random_apical_gen.uniform(0, n_apical_dendrites)
 */
 objref random_pos
 random_pos = new Random()
-random_pos.MCellRan4(132)
+random_pos.MCellRan4(random_seed)
 random_pos.uniform(0, 1)
-
-/*
-    Initialize a random number generator for delay of
-    the synaptic inputs, ranging from 0 to 200 ms
-*/
-objref random_delay
-random_delay = new Random()
-random_delay.MCellRan4()
-random_delay.uniform(0, 200)
 
 for i = 0, n_synapses - 1 {
     print "Inserting synapse ", i + 1
@@ -88,22 +82,22 @@ for i = 0, n_synapses - 1 {
     apical_dendrite[dendrite_idx] syn_nmda[i] = new nmdanet(loc_pos)
 
     // Initialize the spike source
-    spikeSources[i] = new BurstCell3()
+    spikeSources[i] = new NetStim()
 
     // Initialize the stimulus
-    stimuli[i] = spikeSources[i].stim
-    stimuli[i].interval = 25  // ms
+    stimuli[i] = spikeSources[i]
+    stimuli[i].interval = 20  // 20 ms = 50 Hz
     stimuli[i].noise = 0
-    stimuli[i].burstlen = 100  // ms
-    stimuli[i].burstint = 250 - stimuli[i].burstlen // ms
+    stimuli[i].number = stim_length / stimuli[i].interval
+    stimuli[i].start = stim_start
 
     // Connect the synapses to the stimuli
     connections_ampa[i] = new NetCon(stimuli[i], syn_ampa[i])
-    connections_ampa[i].delay = int(random_delay.repick())
+    connections_ampa[i].delay = 0
     connections_ampa[i].weight = connection_weight
 
     connections_nmda[i] = new NetCon(stimuli[i], syn_nmda[i])
-    connections_nmda[i].delay = connections_ampa[i].delay
+    connections_nmda[i].delay = 0
     connections_nmda[i].weight = connection_weight
 
     print "The synapse will receive input at ", connections_ampa[i].delay, "ms"
