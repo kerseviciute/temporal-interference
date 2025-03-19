@@ -1,5 +1,8 @@
 from neuron import h
 import os
+import plotly
+import matplotlib
+import plotly.graph_objects as go
 from abc import ABC, abstractmethod
 
 
@@ -120,3 +123,51 @@ class AbstractNeuron(ABC):
     @abstractmethod
     def run(self):
         pass
+
+    @abstractmethod
+    def __get_synapse_info(self):
+        pass
+
+    def plot(self):
+        # Do not show Burst cells
+        neuron_sections = h.SectionList([sec for sec in h.allsec() if "Burst" not in str(sec) and "sField" not in str(sec)])
+
+        ps = h.PlotShape(neuron_sections, False)
+        ps.show(1)
+
+        fig = ps.plot(plotly, cmap = matplotlib.colormaps["inferno"])
+
+        fig.update_layout(
+            scene = dict(
+                xaxis_title = "",
+                yaxis_title = "",
+                zaxis_title = "",
+                xaxis = dict(showbackground = False, showticklabels = False),
+                yaxis = dict(showbackground = False, showticklabels = False),
+                zaxis = dict(showbackground = False, showticklabels = False)
+            )
+        )
+
+        synapse_info = self.__get_synapse_info()
+        for i, synapse in synapse_info.iterrows():
+            dendrite_idx = int(synapse.Dendrite)
+            dendrite_loc = synapse.Location
+
+            i = int(h.apical_dendrite[dendrite_idx].n3d() * dendrite_loc)
+            x = h.apical_dendrite[dendrite_idx].x3d(i)
+            y = h.apical_dendrite[dendrite_idx].y3d(i)
+            z = h.apical_dendrite[dendrite_idx].z3d(i)
+
+            fig.add_trace(
+                go.Scatter3d(
+                    x = [x],
+                    y = [y],
+                    z = [z],
+                    marker = dict(
+                        color = "red",
+                        size = 3
+                    )
+                )
+            )
+
+        fig.show(config = { "scrollZoom": False })

@@ -44,6 +44,9 @@ class PlasticNeuron(AbstractNeuron, ABC):
 
         super().__init__()
 
+    def _AbstractNeuron__get_synapse_info(self):
+        return self.synapse_info
+
     def __generate_synapses(self):
         """
         Generates and inserts new synapses at random locations.
