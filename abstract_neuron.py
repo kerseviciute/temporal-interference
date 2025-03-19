@@ -19,17 +19,10 @@ class AbstractNeuron(ABC):
     # TODO: that it is separate from h? (now these are equivalent)
     # TODO: would be useful to run simulations in parallel
     def __init__(self):
-        self.__is_created = False
         self.__hoc_dir = os.getcwd()
-
         self.create_cell()
 
     def create_cell(self):
-        # Only create the cell if it is not yet created
-        if self.__is_created:
-            print("Cell already created")
-            return
-
         print("Creating cell")
 
         # Load standard run tools
@@ -58,8 +51,6 @@ class AbstractNeuron(ABC):
         h('proc init() { nrnpython("AbstractNeuron._AbstractNeuron__neuron_init()") }')
 
         self.initialize()
-
-        self.__is_created = True
 
     # noinspection PyMethodMayBeStatic
     def insert_mechanism(self, mechanism):
