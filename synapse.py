@@ -12,18 +12,18 @@ class Synapse:
             stimulus,
             delay: float = 0.0,
             initial_weight: float = 0.0,
-            max_weight: float = 0.0
+            initial_conductance: float = 0.0
     ):
         self.ampa = h.STDPE2bis(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
-        self.ampa.initial_weight = initial_weight
+        self.ampa.initial_weight = initial_weight * initial_conductance
         self.nmda = h.nmdanet(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
         self.stimulus = stimulus
 
         self.connection_ampa = self.__connect(
-            self.ampa, self.stimulus, delay = delay, max_weight = max_weight
+            self.ampa, self.stimulus, delay = delay, initial_conductance = initial_conductance
         )
         self.connection_nmda = self.__connect(
-            self.nmda, self.stimulus, delay = delay, max_weight = max_weight
+            self.nmda, self.stimulus, delay = delay, initial_conductance = initial_conductance
         )
 
         self.__weights_0 = h.Vector().record(self.connection_ampa._ref_weight[0])
@@ -33,10 +33,10 @@ class Synapse:
         self.__v = h.Vector().record(h.apical_dendrite[dendrite_idx](dendrite_loc)._ref_v)
 
     @staticmethod
-    def __connect(synapse, stimulus, delay: float = 0.0, max_weight: float = 1.0):
+    def __connect(synapse, stimulus, delay: float = 0.0, initial_conductance: float = 1.0):
         connection = h.NetCon(stimulus, synapse)
         connection.delay = delay
-        connection.weight[0] = max_weight
+        connection.weight[0] = initial_conductance
 
         return connection
 

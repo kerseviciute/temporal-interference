@@ -43,5 +43,14 @@ class NeuronUtils:
         return stimulus
 
     @staticmethod
+    def create_constant_freq_stimulus(frequency, noise = 0, delay = 0):
+        stimulus = h.NetStim()
+        stimulus.interval = int(1000 / frequency)
+        stimulus.noise = noise
+        stimulus.start = delay
+
+        return stimulus
+
+    @staticmethod
     def set_stimulus(delay = 100, duration = 900, frequency1 = 1000, frequency2 = 1005, amplitude = 100, phase = 0):
         h.setstim(delay, duration, frequency1, frequency2, amplitude, phase)

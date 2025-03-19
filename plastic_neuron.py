@@ -1,11 +1,10 @@
+import numpy as np
 import pandas as pd
 from abstract_neuron import AbstractNeuron
 from neuron import h
 import random
 from abc import ABC, abstractmethod
 from neuron_utils import NeuronUtils
-import numpy as np
-from copy import deepcopy
 from synapse import Synapse
 
 
@@ -17,17 +16,34 @@ class PlasticNeuron(AbstractNeuron, ABC):
     def __init__(
             self,
             n_synapses = 10,
-            # TODO: allow specifying a list of connection weights
+            # TODO: allow specifying a list of connection weights (maximal allowed conductances)
             # TODO: allow specifying a list of initial connection weights
-            connection_weight = 0.0002,
-            initial_weight = 0.0001,
+            # TODO: maybe move these parameters to the synapse information block?
+            initial_conductance = 0.0002,
+            initial_weight: float = 0,
             min_distance = 100,
             max_distance = 300,
             seed = 42,
             synapse_info = None
     ):
+        """
+        NOTE: initialization order is important.
+
+        :param n_synapses: number of synapses
+        :param initial_conductance: initial synapse conductance. The maximum conductance is
+                                    double the initial conductance when fully potentiated
+        :param initial_weight: initial synapse weight, specified as the degree of potentiation
+                               in the interval [0, 1]
+        :param min_distance: minimum synapse distance from the soma
+        :param max_distance: maximum synapse distance from the soma
+        :param seed: seed for random initializations
+        :param synapse_info: a data frame with synapse information. If not provided, synapses
+                             will be generated randomly. If provided, other parameters (n_synapses,
+                             min_distance, max_distance) are ignored
+        """
+
         self.n_synapses = n_synapses
-        self.connection_weight = connection_weight
+        self.initial_conductance = initial_conductance
         self.initial_weight = initial_weight
         self.min_distance = min_distance
         self.max_distance = max_distance
@@ -40,9 +56,10 @@ class PlasticNeuron(AbstractNeuron, ABC):
         if self.synapse_info is not None:
             self.n_synapses = len(self.synapse_info)
 
-        self.output = None
-
         super().__init__()
+
+        self.__v = h.Vector().record(h.soma[0](0.5)._ref_v)
+        self.__t = h.Vector().record(h._ref_t)
 
     def _AbstractNeuron__get_synapse_info(self):
         return self.synapse_info
@@ -67,7 +84,7 @@ class PlasticNeuron(AbstractNeuron, ABC):
                 min_distance = self.min_distance
             )
 
-            delay = random.uniform(0, 100)
+            delay = random.uniform(5, 50)
 
             self.__insert_synapse(dendrite_idx, dendrite_loc, delay)
 
@@ -90,14 +107,19 @@ class PlasticNeuron(AbstractNeuron, ABC):
         :return: None
         """
         # TODO: create the stimulus elsewhere?
-        stimulus = NeuronUtils.create_burst_stimulus()
+        stimulus = NeuronUtils.create_constant_freq_stimulus(
+            frequency = 10,
+            noise = 0,
+            delay = 0
+        )
 
+        # TODO: make sure the parameters are alright
         synapse = Synapse(
             dendrite_idx = dendrite_idx,
             dendrite_loc = dendrite_loc,
             stimulus = stimulus,
             delay = delay,
-            max_weight = self.connection_weight,
+            initial_conductance = self.initial_conductance,
             initial_weight = self.initial_weight
         )
 
@@ -137,17 +159,14 @@ class PlasticNeuron(AbstractNeuron, ABC):
             phase = 0
         )
 
-        # Set up recording of all the variables of interest
-        soma = h.Vector().record(h.soma[0](0.5)._ref_v)
-        t = h.Vector().record(h._ref_t)
-
         # Run the experiment
         h.tstop = duration
         h.run()
 
-        # Save the results
-        # TODO: do it the same way as with the synapses?
-        self.output = pd.DataFrame({
-            "Time": t,
-            "Soma": soma
-        })
+    @property
+    def voltage(self):
+        return np.array(self.__v)
+
+    @property
+    def time(self):
+        return np.array(self.__t)
