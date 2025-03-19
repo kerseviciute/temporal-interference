@@ -43,10 +43,5 @@ class NeuronUtils:
         return stimulus
 
     @staticmethod
-    def connect(synapse, stimulus, delay: float = 0.0, initial_weight: float = 0.0, max_weight: float = 1.0):
-        connection = h.NetCon(stimulus, synapse)
-        connection.delay = delay
-        connection.weight[0] = max_weight
-        connection.weight[1] = initial_weight
-
-        return connection
+    def set_stimulus(delay = 100, duration = 900, frequency1 = 1000, frequency2 = 1005, amplitude = 100, phase = 0):
+        h.setstim(delay, duration, frequency1, frequency2, amplitude, phase)

@@ -4,12 +4,17 @@
 : (initial weight is specified by netconn - usually set to wmin)
 : Rhythmic GABAB suppresses conductance and promotes plasticity.
 : When GABAB is low, conductance is high and plasticity is off.
+:
+: Modified by Ieva Kerseviciute 2025-03-19
+: Change initial synaptic weight.
 
 NEURON {
 	POINT_PROCESS STDPE2bis
 	RANGE tau1, tau2, e, i, d, p, dtau, ptau, thresh, wmax, wmin, srcnt1, srcnt2, srcnt3, srcnt4
 	RANGE g, gbdel, gblen, gbint, gscale, factor,dshift,dM,dV,B,C
 	NONSPECIFIC_CURRENT i
+
+	RANGE initial_weight : The initial synaptic weight
 }
 
 UNITS {
@@ -49,6 +54,8 @@ PARAMETER {
     gscale = 1	: relative suppression by GABAB
 
     dshift = 0 (ms)
+
+    initial_weight = 0 (uS)
 }
 
 ASSIGNED {
@@ -96,7 +103,7 @@ DERIVATIVE state {
 
 NET_RECEIVE(w (uS), A, tpre (ms)) {
     INITIAL {
-        A = 0.0
+        A = initial_weight
         tpre = -1e9
     }
 
