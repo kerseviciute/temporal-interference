@@ -1,5 +1,9 @@
 # Simulate the effects of a planar electric field at different frequencies on a realistic neuron
 
+## Future problems
+
+- [ ] mechanism of choice does not implement depression
+
 ## TODO
 
 - [ ] Test the effect of the orientation of the electric field on synaptic plasticity
