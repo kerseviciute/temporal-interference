@@ -122,3 +122,10 @@ class Neuron(ABC):
     @abstractmethod
     def initialize(self):
         pass
+
+    """
+        run() is a method used to run the simulation.
+    """
+    @abstractmethod
+    def run(self):
+        pass
