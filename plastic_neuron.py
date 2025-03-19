@@ -16,11 +16,11 @@ class PlasticNeuron(Neuron, ABC):
             n_synapses = 10,
             # TODO: allow specifying a list of connection weights
             # TODO: allow specifying a list of initial connection weights
-            # TODO: allow specifying synapse positions! + generate if not given only
             connection_weight = 0.0002,
             min_distance = 100,
             max_distance = 300,
-            seed = 42
+            seed = 42,
+            synapse_info = None
     ):
         self.n_synapses = n_synapses
         self.connection_weight = connection_weight
@@ -35,13 +35,20 @@ class PlasticNeuron(Neuron, ABC):
 
         self.stimuli = []
 
-        self.synapse_info = pd.DataFrame()
-
         self.seed = seed
+
+        self.synapse_info = synapse_info
+        if self.synapse_info is not None:
+            self.n_synapses = len(self.synapse_info)
 
         super().__init__()
 
-    def initialize(self):
+    def __generate_synapses(self):
+        """
+        Generates and inserts new synapses at random locations.
+
+        :return: None
+        """
         random.seed(self.seed)
 
         print(f"Inserting {self.n_synapses} synapses")
@@ -56,22 +63,9 @@ class PlasticNeuron(Neuron, ABC):
                 min_distance = self.min_distance
             )
 
-            ampa = h.STDPE2bis(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
-            nmda = h.nmdanet(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
-
-            stimulus = NeuronUtils.create_burst_stimulus()
             delay = random.uniform(0, 100)
 
-            connection_ampa = NeuronUtils.connect(ampa, stimulus, delay = delay, max_weight = self.connection_weight)
-            connection_nmda = NeuronUtils.connect(nmda, stimulus, delay = delay, max_weight = self.connection_weight)
-
-            self.ampa.append(ampa)
-            self.connection_ampa.append(connection_ampa)
-
-            self.nmda.append(nmda)
-            self.connection_nmda.append(connection_nmda)
-
-            self.stimuli.append(stimulus)
+            self.__insert_synapse(dendrite_idx, dendrite_loc, delay)
 
             synapse_info.append(pd.DataFrame({
                 "Dendrite": [dendrite_idx],
@@ -80,7 +74,55 @@ class PlasticNeuron(Neuron, ABC):
                 "Delay": [delay]
             }))
 
-        self.synapse_info = pd.concat(synapse_info)
+        self.synapse_info = pd.concat(synapse_info, ignore_index = True)
+
+    def __insert_synapse(self, dendrite_idx, dendrite_loc, delay):
+        """
+        Inserts a synapse: generates the channel, stimulus, and connections.
+
+        :param dendrite_idx: dendrite id
+        :param dendrite_loc: location along the dendrite
+        :param delay: delay of stimulus
+        :return: None
+        """
+        ampa = h.STDPE2bis(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
+        nmda = h.nmdanet(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
+
+        stimulus = NeuronUtils.create_burst_stimulus()
+
+        connection_ampa = NeuronUtils.connect(ampa, stimulus, delay = delay, max_weight = self.connection_weight)
+        connection_nmda = NeuronUtils.connect(nmda, stimulus, delay = delay, max_weight = self.connection_weight)
+
+        self.ampa.append(ampa)
+        self.connection_ampa.append(connection_ampa)
+
+        self.nmda.append(nmda)
+        self.connection_nmda.append(connection_nmda)
+
+        self.stimuli.append(stimulus)
+
+    def __read_synapses(self):
+        """
+        Reads synapse information and inserts them.
+
+        :return: None
+        """
+        print(f"Inserting {len(self.synapse_info)} synapses")
+
+        for _, synapse in self.synapse_info.iterrows():
+            dendrite_idx = int(synapse.Dendrite)
+            dendrite_loc = synapse.Location
+            delay = synapse.Delay
+
+            self.__insert_synapse(dendrite_idx, dendrite_loc, delay)
+
+    def initialize(self):
+        if self.synapse_info is not None:
+            print("Reading synapse information")
+            self.__read_synapses()
+        else:
+            print("Generating synapse information")
+            self.__generate_synapses()
 
     def run(self):
         pass

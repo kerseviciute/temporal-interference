@@ -32,6 +32,7 @@ class NeuronUtils:
         return dendrite_idx, loc_pos, distance_to_soma
 
     @staticmethod
+    # TODO: make customizable
     def create_burst_stimulus():
         stimulus = h.BurstStim3()
         stimulus.interval = 25
