@@ -125,7 +125,7 @@ class AbstractNeuron(ABC):
         pass
 
     @abstractmethod
-    def __get_synapse_info(self):
+    def get_synapse_info(self):
         pass
 
     def plot(self):

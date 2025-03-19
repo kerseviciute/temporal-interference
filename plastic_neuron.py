@@ -3,12 +3,11 @@ import pandas as pd
 from abstract_neuron import AbstractNeuron
 from neuron import h
 import random
-from abc import ABC, abstractmethod
 from neuron_utils import NeuronUtils
 from synapse import Synapse
 
 
-class PlasticNeuron(AbstractNeuron, ABC):
+class PlasticNeuron(AbstractNeuron):
     """
         Simple Neuron with AMPA and NMDA synapses.
     """
@@ -18,28 +17,44 @@ class PlasticNeuron(AbstractNeuron, ABC):
             n_synapses = 10,
             # TODO: allow specifying a list of connection weights (maximal allowed conductances)
             # TODO: allow specifying a list of initial connection weights
-            # TODO: maybe move these parameters to the synapse information block?
             initial_conductance = 0.0002,
             initial_weight: float = 0,
             min_distance = 100,
             max_distance = 300,
             seed = 42,
-            synapse_info = None
+
+            synapse_info = None,
+
+            generate_stimulus = NeuronUtils.create_constant_freq_stimulus,
+            reuse_stimulus = False,
+            generate_delay = lambda: 0
     ):
         """
         NOTE: initialization order is important.
 
         :param n_synapses: number of synapses
+
         :param initial_conductance: initial synapse conductance. The maximum conductance is
                                     double the initial conductance when fully potentiated
+
         :param initial_weight: initial synapse weight, specified as the degree of potentiation
                                in the interval [0, 1]
+
         :param min_distance: minimum synapse distance from the soma
+
         :param max_distance: maximum synapse distance from the soma
+
         :param seed: seed for random initializations
+
         :param synapse_info: a data frame with synapse information. If not provided, synapses
                              will be generated randomly. If provided, other parameters (n_synapses,
-                             min_distance, max_distance) are ignored
+                             initial_conductance, initial_weight, min_distance, max_distance) are ignored
+
+        :param generate_stimulus: a function used to generate stimuli for the synapses
+
+        :param reuse_stimulus: if True, the same stimulus will be used for all synapses
+
+        :param generate_delay: a function used to generate the delay of synaptic inputs
         """
 
         self.n_synapses = n_synapses
@@ -56,12 +71,18 @@ class PlasticNeuron(AbstractNeuron, ABC):
         if self.synapse_info is not None:
             self.n_synapses = len(self.synapse_info)
 
+        self.generate_stimulus = generate_stimulus
+        self.reuse_stimulus = reuse_stimulus
+        self.stimulus = None
+
+        self.generate_delay = generate_delay
+
         super().__init__()
 
         self.__v = h.Vector().record(h.soma[0](0.5)._ref_v)
         self.__t = h.Vector().record(h._ref_t)
 
-    def _AbstractNeuron__get_synapse_info(self):
+    def get_synapse_info(self):
         return self.synapse_info
 
     def __generate_synapses(self):
@@ -84,20 +105,35 @@ class PlasticNeuron(AbstractNeuron, ABC):
                 min_distance = self.min_distance
             )
 
-            delay = random.uniform(5, 50)
+            delay = self.generate_delay()
 
-            self.__insert_synapse(dendrite_idx, dendrite_loc, delay)
+            self.__insert_synapse(
+                dendrite_idx = dendrite_idx,
+                dendrite_loc = dendrite_loc,
+                delay = delay,
+                initial_conductance = self.initial_conductance,
+                initial_weight = self.initial_weight
+            )
 
             synapse_info.append(pd.DataFrame({
                 "Dendrite": [dendrite_idx],
                 "Location": [dendrite_loc],
                 "Distance": [distance],
-                "Delay": [delay]
+                "Delay": [delay],
+                "Conductance": [self.initial_conductance],
+                "InitialWeight": [self.initial_weight]
             }))
 
         self.synapse_info = pd.concat(synapse_info, ignore_index = True)
 
-    def __insert_synapse(self, dendrite_idx, dendrite_loc, delay):
+    def __insert_synapse(
+            self,
+            dendrite_idx,
+            dendrite_loc,
+            delay,
+            initial_conductance,
+            initial_weight
+    ):
         """
         Inserts a synapse at the specified location.
 
@@ -106,24 +142,31 @@ class PlasticNeuron(AbstractNeuron, ABC):
         :param delay: delay of stimulus
         :return: None
         """
-        # TODO: create the stimulus elsewhere?
-        stimulus = NeuronUtils.create_constant_freq_stimulus(
-            frequency = 10,
-            noise = 0,
-            delay = 0
-        )
 
-        # TODO: make sure the parameters are alright
+        stimulus = self.__get_stimulus()
+
         synapse = Synapse(
             dendrite_idx = dendrite_idx,
             dendrite_loc = dendrite_loc,
             stimulus = stimulus,
             delay = delay,
-            initial_conductance = self.initial_conductance,
-            initial_weight = self.initial_weight
+            initial_conductance = initial_conductance,
+            initial_weight = initial_weight
         )
 
         self.synapses.append(synapse)
+
+    def __get_stimulus(self):
+        # If we should reuse the stimulus, generate a common one and/or
+        # simply return it
+        if self.reuse_stimulus:
+            if self.stimulus is None:
+                self.stimulus = self.generate_stimulus()
+
+            return self.stimulus
+        # Otherwise, provide a new stimulus
+        else:
+            return self.generate_stimulus()
 
     def __read_synapses(self):
         """
@@ -137,8 +180,16 @@ class PlasticNeuron(AbstractNeuron, ABC):
             dendrite_idx = int(synapse.Dendrite)
             dendrite_loc = synapse.Location
             delay = synapse.Delay
+            initial_conductance = synapse.Conductance
+            initial_weight = synapse.InitialWeight
 
-            self.__insert_synapse(dendrite_idx, dendrite_loc, delay)
+            self.__insert_synapse(
+                dendrite_idx = dendrite_idx,
+                dendrite_loc = dendrite_loc,
+                delay = delay,
+                initial_conductance = initial_conductance,
+                initial_weight = initial_weight
+            )
 
     def initialize(self):
         if self.synapse_info is not None:
