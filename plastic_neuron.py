@@ -1,5 +1,5 @@
 import pandas as pd
-from model_neuron import Neuron
+from abstract_neuron import AbstractNeuron
 from neuron import h
 import random
 from abc import ABC, abstractmethod

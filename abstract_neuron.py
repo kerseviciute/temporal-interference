@@ -3,7 +3,7 @@ import os
 from abc import ABC, abstractmethod
 
 
-class Neuron(ABC):
+class AbstractNeuron(ABC):
     """
     The abstract neuron class encapsulates all steps to initialize
     the model neuron. This includes loading the necessary files,
@@ -55,7 +55,7 @@ class Neuron(ABC):
         # Extracellular stimulus
         self.load_hoc("nrnhoc/zapstimu2.hoc")
 
-        h('proc init() { nrnpython("Neuron.__neuron_init()") }')
+        h('proc init() { nrnpython("AbstractNeuron._AbstractNeuron__neuron_init()") }')
 
         self.initialize()
 
