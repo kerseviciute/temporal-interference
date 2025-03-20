@@ -1,0 +1,183 @@
+from neuron import h
+import os
+import plotly
+import matplotlib
+import plotly.graph_objects as go
+from abc import ABC, abstractmethod
+import time
+
+class AbstractNeuron(ABC):
+    """
+    The abstract neuron class encapsulates all steps to initialize
+    the model neuron. This includes loading the necessary files,
+    inserting mechanisms, and defining init() for resetting the neuron.
+
+    See the extensions of this class for models with different synapse
+    types. Use only those models to run the simulations.
+
+    NOTE: only one neuron per python session can be created.
+    """
+
+    # TODO: would it be possible to define the neuron in such a way
+    # TODO: that it is separate from h? (now these are equivalent)
+    # TODO: would be useful to run simulations in parallel
+    def __init__(self):
+        self.__hoc_dir = os.getcwd()
+        self.create_cell()
+
+    def create_cell(self):
+        print("Creating cell")
+
+        # Load standard run tools
+        h.load_file("stdrun.hoc")
+
+        # Load cell anatomical and biophysical properties
+        self.load_hoc("nrnhoc/cellspec_c62564.hoc")
+        self.load_hoc("nrnhoc/biophys.hoc")
+        self.load_hoc("nrnhoc/fluct.hoc")
+
+        self.insert_mechanism("extracellular")
+        self.insert_mechanism("xtrau")
+
+        # Only interpolates sections that have xtrau
+        self.load_hoc("nrnhoc/interpxyzu.hoc")
+
+        # Automatically calls grindaway() in interpxyzu.hoc
+        self.load_hoc("nrnhoc/setpointersu.hoc")
+
+        # Computes scale factor used to calculate extracellular potential
+        # produced by a uniform electrical field
+        self.load_hoc("nrnhoc/calcrxcu.hoc")
+
+        # Computes scale factor used to calculate extracellular potential
+        # produced by a uniform electrical field
+        self.load_hoc("nrnhoc/calcd.hoc")
+
+        # Extracellular stimulus
+        self.load_hoc("nrnhoc/zapstimu2.hoc")
+
+        h('proc init() { nrnpython("AbstractNeuron._AbstractNeuron__neuron_init()") }')
+
+        self.initialize()
+
+    # noinspection PyMethodMayBeStatic
+    def insert_mechanism(self, mechanism):
+        for sec in h.allsec():
+            sec.insert(mechanism)
+
+    def load_hoc(self, hoc_file):
+        hoc_path = os.path.join(self.__hoc_dir, hoc_file)
+        h.load_file(hoc_path)
+
+    @staticmethod
+    def __neuron_init():
+        h.t = 0
+
+        for section in h.allsec():
+            # Reset the resting potential
+            section.v = h.Vrest
+
+            # Set reversal potential for sodium channels
+            if h.ismembrane("nax", sec = section) or \
+               h.ismembrane("na3", sec = section):
+                for segment in section: segment.ena = 55
+
+            # Set reversal potential for potassium channels
+            if h.ismembrane("kdr", sec = section) or \
+               h.ismembrane("kap", sec = section) or \
+               h.ismembrane("kad", sec = section):
+                for segment in section: segment.ek = -90
+
+            # Set reversal potential for h-current
+            if h.ismembrane("hd", sec = section):
+                for segment in section: segment.ehd_hd = -30
+
+        # Set membrane potential to resting values
+        h.finitialize(h.Vrest)
+        # Calculate the currents
+
+        # TODO: needs checking
+        if h.cvode.active():
+            h.cvode.re_init()
+        else:
+            h.fcurrent()
+
+        for section in h.allsec():
+            if h.ismembrane("na3", sec = section) or \
+               h.ismembrane("nax", sec = section):
+                for segment in section:
+                    # Calculate passive current for sodium channels
+                    segment.e_pas = segment.v + (segment.ina + segment.ik) / segment.g_pas
+
+            if h.ismembrane("hd", sec = section):
+                # Calculate passive current for h-current mechanisms
+                for segment in section:
+                    segment.e_pas = segment.e_pas + segment.i_hd / segment.g_pas
+
+        print("Neuron initialized")
+
+    """
+        initialize() is called during create_cell(). Use this method to include
+        synapses, set up stimulation parameters, etc.
+    """
+    @abstractmethod
+    def initialize(self):
+        pass
+
+    def run(self, duration = 100):
+        start = time.perf_counter()
+
+        h.tstop = duration
+        h.run()
+
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.2f} seconds")
+
+    @abstractmethod
+    def get_synapse_info(self):
+        pass
+
+    def plot(self):
+        # Do not show Burst cells
+        neuron_sections = h.SectionList([sec for sec in h.allsec() if "Burst" not in str(sec) and "sField" not in str(sec)])
+
+        ps = h.PlotShape(neuron_sections, False)
+        ps.show(1)
+
+        fig = ps.plot(plotly, cmap = matplotlib.colormaps["inferno"])
+
+        fig.update_layout(
+            scene = dict(
+                xaxis_title = "",
+                yaxis_title = "",
+                zaxis_title = "",
+                xaxis = dict(showbackground = False, showticklabels = False),
+                yaxis = dict(showbackground = False, showticklabels = False),
+                zaxis = dict(showbackground = False, showticklabels = False)
+            )
+        )
+
+        synapse_info = self.__get_synapse_info()
+        for i, synapse in synapse_info.iterrows():
+            dendrite_idx = int(synapse.Dendrite)
+            dendrite_loc = synapse.Location
+
+            i = int(h.apical_dendrite[dendrite_idx].n3d() * dendrite_loc)
+            x = h.apical_dendrite[dendrite_idx].x3d(i)
+            y = h.apical_dendrite[dendrite_idx].y3d(i)
+            z = h.apical_dendrite[dendrite_idx].z3d(i)
+
+            fig.add_trace(
+                go.Scatter3d(
+                    x = [x],
+                    y = [y],
+                    z = [z],
+                    marker = dict(
+                        color = "red",
+                        size = 3
+                    )
+                )
+            )
+
+        fig.show(config = { "scrollZoom": False })
