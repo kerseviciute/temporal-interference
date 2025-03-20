@@ -124,12 +124,15 @@ class AbstractNeuron(ABC):
     def initialize(self):
         pass
 
-    """
-        run() is a method used to run the simulation.
-    """
-    @abstractmethod
     def run(self):
-        pass
+        start = time.perf_counter()
+
+        h.tstop = duration
+        h.run()
+
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
     @abstractmethod
     def get_synapse_info(self):

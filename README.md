@@ -8,7 +8,7 @@
 
 - [ ] Make sure the synapses work correctly and their weights are not updated when they shouldn't be (or if they are - check if other conditions are met)
 
-- [ ] Run LTP protocol + obtain weights with / without electric field
+- [x] Run LTP protocol + obtain weights with / without electric field
 - [ ] Use weights obtained during LTP and run with naturally occurring inputs with / without electric field
 - [ ] Use weights obtained during LTP and run with unsynchronised Poisson inputs with / without electric field
 

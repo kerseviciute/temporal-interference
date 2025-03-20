@@ -5,6 +5,7 @@ from neuron import h
 import random
 from neuron_utils import NeuronUtils
 from synapse import Synapse
+import time
 
 
 class PlasticNeuron(AbstractNeuron):
@@ -17,16 +18,18 @@ class PlasticNeuron(AbstractNeuron):
             n_synapses = 10,
             # TODO: allow specifying a list of connection weights (maximal allowed conductances)
             # TODO: allow specifying a list of initial connection weights
-            initial_conductance = 0.0002,
+            initial_conductance = 0.00005,
             initial_weight: float = 0,
             min_distance = 100,
             max_distance = 300,
+
+            ap_threshold = -20,
+
             seed = 42,
 
             synapse_info = None,
 
             generate_stimulus = NeuronUtils.create_constant_freq_stimulus,
-            reuse_stimulus = False,
             generate_delay = lambda: 0
     ):
         """
@@ -52,8 +55,6 @@ class PlasticNeuron(AbstractNeuron):
 
         :param generate_stimulus: a function used to generate stimuli for the synapses
 
-        :param reuse_stimulus: if True, the same stimulus will be used for all synapses
-
         :param generate_delay: a function used to generate the delay of synaptic inputs
         """
 
@@ -72,7 +73,6 @@ class PlasticNeuron(AbstractNeuron):
             self.n_synapses = len(self.synapse_info)
 
         self.generate_stimulus = generate_stimulus
-        self.reuse_stimulus = reuse_stimulus
         self.stimulus = None
 
         self.generate_delay = generate_delay
@@ -81,6 +81,12 @@ class PlasticNeuron(AbstractNeuron):
 
         self.__v = h.Vector().record(h.soma[0](0.5)._ref_v)
         self.__t = h.Vector().record(h._ref_t)
+
+        # Record spike times
+        self.__spike_times = h.Vector()
+        ap_connection = h.NetCon(h.soma[0](0.5)._ref_v, None, sec = h.soma[0])
+        ap_connection.threshold = ap_threshold
+        ap_connection.record(self.__spike_times)
 
     def get_synapse_info(self):
         return self.synapse_info
@@ -144,7 +150,7 @@ class PlasticNeuron(AbstractNeuron):
         :return: None
         """
 
-        stimulus = self.__get_stimulus()
+        stimulus = self.generate_stimulus()
 
         synapse = Synapse(
             dendrite_idx = dendrite_idx,
@@ -156,18 +162,6 @@ class PlasticNeuron(AbstractNeuron):
         )
 
         self.synapses.append(synapse)
-
-    def __get_stimulus(self):
-        # If we should reuse the stimulus, generate a common one and/or
-        # simply return it
-        if self.reuse_stimulus:
-            if self.stimulus is None:
-                self.stimulus = self.generate_stimulus()
-
-            return self.stimulus
-        # Otherwise, provide a new stimulus
-        else:
-            return self.generate_stimulus()
 
     def __read_synapses(self):
         """
@@ -201,8 +195,14 @@ class PlasticNeuron(AbstractNeuron):
             self.__generate_synapses()
 
     def run(self, duration = 100):
+        start = time.perf_counter()
+
         h.tstop = duration
         h.run()
+
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print(f"Elapsed time: {elapsed_time:.2f} seconds")
 
     @property
     def voltage(self):
@@ -211,3 +211,22 @@ class PlasticNeuron(AbstractNeuron):
     @property
     def time(self):
         return np.array(self.__t)
+
+    @property
+    def spike_times(self):
+        if len(self.__spike_times) > 0:
+            return np.array(self.__spike_times)
+        else:
+            return np.array([])
+
+    @property
+    def spike_frequency(self):
+        if len(self.spike_times) > 1:
+            isi = np.diff(self.spike_times)
+            instantaneous_freq = 1000 / isi
+            spike_time = self.spike_times[1:]
+        else:
+            instantaneous_freq = []
+            spike_time = []
+
+        return instantaneous_freq, spike_time
