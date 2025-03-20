@@ -36,16 +36,16 @@ proc init() {
 	forall {
 		v = Vrest
 		
-    if(ismembrane("nax") || ismembrane("na3")) {
+        if (ismembrane("nax") || ismembrane("na3")) {
 			ena = 55
 		}
 
-		if(ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {
+		if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {
 			ek = -90
 		}
 
-		if(ismembrane("hd")) {
-			ehd_h = -30
+		if (ismembrane("hd")) {
+			ehd_hd = -30
 		}
 	}
 
