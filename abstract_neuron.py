@@ -4,7 +4,7 @@ import plotly
 import matplotlib
 import plotly.graph_objects as go
 from abc import ABC, abstractmethod
-
+import time
 
 class AbstractNeuron(ABC):
     """
@@ -124,7 +124,7 @@ class AbstractNeuron(ABC):
     def initialize(self):
         pass
 
-    def run(self):
+    def run(self, duration = 100):
         start = time.perf_counter()
 
         h.tstop = duration

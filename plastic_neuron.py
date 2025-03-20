@@ -5,7 +5,7 @@ from neuron import h
 import random
 from neuron_utils import NeuronUtils
 from synapse import Synapse
-import time
+from copy import deepcopy
 
 
 class PlasticNeuron(AbstractNeuron):
@@ -194,15 +194,13 @@ class PlasticNeuron(AbstractNeuron):
             print("Generating synapse information")
             self.__generate_synapses()
 
-    def run(self, duration = 100):
-        start = time.perf_counter()
+    def get_final_synapse_info(self):
+        synapse_info = deepcopy(self.synapse_info)
 
-        h.tstop = duration
-        h.run()
+        final_weights = [ synapse.weights[-1] for synapse in self.synapses ]
+        synapse_info.InitialWeight = final_weights
 
-        end = time.perf_counter()
-        elapsed_time = end - start
-        print(f"Elapsed time: {elapsed_time:.2f} seconds")
+        return synapse_info
 
     @property
     def voltage(self):
