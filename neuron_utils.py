@@ -55,5 +55,14 @@ class NeuronUtils:
         return stimulus
 
     @staticmethod
+    def create_no_stimulus():
+        return None
+
+    @staticmethod
     def set_stimulus(delay = 100, duration = 900, frequency1 = 1000, frequency2 = 1005, amplitude = 100, phase = 0):
         h.setstim(delay, duration, frequency1, frequency2, amplitude, phase)
+
+    @staticmethod
+    def set_field(theta_deg = 90, phi_deg = 90):
+        field_length = 100
+        h.changefield(field_length, theta_deg, phi_deg)

@@ -99,9 +99,9 @@ proc drawfield() {
 		pt3dclear()
 		pt3dadd(0, 0, 0, 1)
 		pt3dadd($1*sin(phi)*cos(theta), $1*sin(phi)*sin(theta), $1*cos(phi), 1)
-doNotify()
+        doNotify()
 		gElec.color(RED) // make the field indicator section red
-doNotify()
+        doNotify()
 		pField = new IClamp(1) // so its 1 end can be marked by a dot
 		gElec.point_mark(pField, BLUE)  // a blue dot
 	}
@@ -111,7 +111,7 @@ proc setfield() {
 	theta = $2*PI/180
 	phi = $3*PI/180
 	setd()
-	drawfield($1)
+	// drawfield($1)
 }
 
 FIELDLENGTH = 100 // for starters
@@ -131,12 +131,14 @@ proc changefield() {
 	theta = $2*PI/180
 	phi = $3*PI/180
 	setd()
-	redrawfield($1)
+	// redrawfield($1)
 }
 
-xpanel("Extracellular Field Orientation", 0)
-  xlabel("polar coords in um and degrees")
-  xvalue("length of field indicator", "FIELDLENGTH", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
-  xvalue("theta", "THETADEG", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
-  xvalue("phi", "PHIDEG", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
-xpanel(629,371)
+/*
+    xpanel("Extracellular Field Orientation", 0)
+      xlabel("polar coords in um and degrees")
+      xvalue("length of field indicator", "FIELDLENGTH", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
+      xvalue("theta", "THETADEG", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
+      xvalue("phi", "PHIDEG", 1, "changefield(FIELDLENGTH,THETADEG,PHIDEG)", 0, 1)
+    xpanel(629,371)
+*/

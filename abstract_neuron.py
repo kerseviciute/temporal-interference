@@ -42,11 +42,16 @@ class AbstractNeuron(ABC):
         # Only interpolates sections that have xtrau
         self.load_hoc("nrnhoc/interpxyzu.hoc")
 
+        # Automatically calls grindaway() in interpxyzu.hoc
         self.load_hoc("nrnhoc/setpointersu.hoc")
 
         # Computes scale factor used to calculate extracellular potential
         # produced by a uniform electrical field
         self.load_hoc("nrnhoc/calcrxcu.hoc")
+
+        # Computes scale factor used to calculate extracellular potential
+        # produced by a uniform electrical field
+        self.load_hoc("nrnhoc/calcd.hoc")
 
         # Extracellular stimulus
         self.load_hoc("nrnhoc/zapstimu2.hoc")
@@ -90,6 +95,8 @@ class AbstractNeuron(ABC):
         # Set membrane potential to resting values
         h.finitialize(h.Vrest)
         # Calculate the currents
+
+        # TODO: needs checking
         if h.cvode.active():
             h.cvode.re_init()
         else:

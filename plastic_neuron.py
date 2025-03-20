@@ -124,7 +124,8 @@ class PlasticNeuron(AbstractNeuron):
                 "InitialWeight": [self.initial_weight]
             }))
 
-        self.synapse_info = pd.concat(synapse_info, ignore_index = True)
+        if self.n_synapses > 0:
+            self.synapse_info = pd.concat(synapse_info, ignore_index = True)
 
     def __insert_synapse(
             self,
@@ -200,17 +201,6 @@ class PlasticNeuron(AbstractNeuron):
             self.__generate_synapses()
 
     def run(self, duration = 100):
-        # Setup experimental conditions
-        NeuronUtils.set_stimulus(
-            delay = 0,
-            duration = 0,
-            frequency1 = 0,
-            frequency2 = 0,
-            amplitude = 0,
-            phase = 0
-        )
-
-        # Run the experiment
         h.tstop = duration
         h.run()
 

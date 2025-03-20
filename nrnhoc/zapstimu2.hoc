@@ -10,11 +10,11 @@ amplitude and sign of the local extracellular field.
 */
 
 // default values
-DEL = 2000  // ms
-DUR = 4000  // ms
-F0 = 50     // Hz
-F1 = 50     // Hz
-AMP = 500   // V/m
+DEL = 0     // ms
+DUR = 1000     // ms
+F0 = 5      // Hz
+F1 = 5      // Hz
+AMP = 100     // V/m
 PHASE = 0   // degrees
 
 objref fz
