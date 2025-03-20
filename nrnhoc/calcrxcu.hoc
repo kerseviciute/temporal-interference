@@ -139,7 +139,7 @@ objref gElec  // will be a Shape that shows extracellular electrode location
 
 gElec = new Shape(0)  // create it but don't map it to the screen yet
 // gElec.size(-245.413,275.413,-250,270)
-gElec.view(-245.413, -250, 520.827, 520, 629, 104, 201.6, 201.28)
+// gElec.view(-245.413, -250, 520.827, 520, 629, 104, 201.6, 201.28)
 
 proc drawelec() {
 	sElec {
@@ -157,19 +157,19 @@ proc setelec() {
 	xe = $1
 	ye = $2
 	ze = $3
-//	setrx(xe, ye, ze)
+    // setrx(xe, ye, ze)
 	setrx()
-	drawelec(xe, ye, ze)
+	// drawelec(xe, ye, ze)
 }
 
 setelec(XE, YE, ZE)  // put stim electrode at (x, y, z)
 
 // print "Use setelec(x, y, z) to change location of extracellular recording electrode"
 /*
-xpanel("Extracellular Electrode Location", 0)
-  xlabel("xyz coords in um")
-  xvalue("x", "XE", 1, "setelec(XE,YE,ZE)", 0, 1)
-  xvalue("y", "YE", 1, "setelec(XE,YE,ZE)", 0, 1)
-  xvalue("z", "ZE", 1, "setelec(XE,YE,ZE)", 0, 1)
-xpanel(855,204)
+    xpanel("Extracellular Electrode Location", 0)
+      xlabel("xyz coords in um")
+      xvalue("x", "XE", 1, "setelec(XE,YE,ZE)", 0, 1)
+      xvalue("y", "YE", 1, "setelec(XE,YE,ZE)", 0, 1)
+      xvalue("z", "ZE", 1, "setelec(XE,YE,ZE)", 0, 1)
+    xpanel(855,204)
 */
