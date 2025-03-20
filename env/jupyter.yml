@@ -1,0 +1,9 @@
+name: jupyter
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - jupyter 1.1.1
+  - numpy
+  - matplotlib
+  - scipy

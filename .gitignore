@@ -1,1 +1,5 @@
 .idea
+arm64
+.snakemake
+generated
+output
