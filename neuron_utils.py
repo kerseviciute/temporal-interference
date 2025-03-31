@@ -59,10 +59,20 @@ class NeuronUtils:
         return None
 
     @staticmethod
+    def create_single_stimulus():
+        stimulus = h.NetStim()
+        stimulus.interval = 1000
+        stimulus.noise = 0
+        stimulus.start = 50
+        stimulus.number = 1
+
+        return stimulus
+
+    @staticmethod
     def set_stimulus(delay = 100, duration = 900, frequency1 = 1000, frequency2 = 1005, amplitude = 100, phase = 0):
         h.setstim(delay, duration, frequency1, frequency2, amplitude, phase)
 
     @staticmethod
-    def set_field(theta_deg = 90, phi_deg = 90):
+    def set_field(psi_deg = 90, phi_deg = 90):
         field_length = 100
-        h.changefield(field_length, theta_deg, phi_deg)
+        h.changefield(field_length, psi_deg, phi_deg)

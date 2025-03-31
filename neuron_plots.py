@@ -15,12 +15,12 @@ class NeuronPlots:
         axs[0].set_title("Synaptic weights")
 
         for synapse in neuron.synapses:
-            axs[1].plot(neuron.time, synapse.current, linewidth = 0.5)
+            axs[1].plot(neuron.time, synapse.ampa_current, linewidth = 0.5)
 
         axs[1].set_title("Synapse current")
 
         for synapse in neuron.synapses:
-            axs[2].plot(neuron.time, synapse.conductance, linewidth = 0.5)
+            axs[2].plot(neuron.time, synapse.ampa_conductance, linewidth = 0.5)
 
         axs[2].set_title("Synapse conductance")
 
@@ -28,6 +28,53 @@ class NeuronPlots:
             axs[3].plot(neuron.time, synapse.voltage, linewidth = 0.5)
 
         axs[3].set_title("Synapse EPSP")
+
+    @staticmethod
+    def plot_all_nmda(neuron):
+        fig, axs = plt.subplots(nrows = 1, ncols = 2, figsize = (10, 5))
+        axs = axs.flatten()
+
+        for synapse in neuron.synapses:
+            axs[0].plot(neuron.time, synapse.nmda_current, linewidth = 0.5)
+
+        axs[0].set_title("Synapse current")
+
+        for synapse in neuron.synapses:
+            axs[1].plot(neuron.time, synapse.nmda_conductance * 1000, linewidth = 0.5)
+
+        axs[1].set_xlabel("Time, ms")
+        axs[1].set_ylabel(r"Conductance, nS")
+        axs[1].set_title("Synapse conductance")
+
+        fig.tight_layout()
+
+    @staticmethod
+    def plot_conductance(neuron):
+        fig, axs = plt.subplots(nrows = 1, ncols = 3, figsize = (12, 4))
+        axs = axs.flatten()
+
+        for synapse in neuron.synapses:
+            axs[0].plot(neuron.time, synapse.ampa_conductance * 1000, linewidth = 0.5)
+
+        axs[0].set_xlabel("Time, ms")
+        axs[0].set_ylabel(r"Conductance, nS")
+        axs[0].set_title("AMPA conductance")
+
+        for synapse in neuron.synapses:
+            axs[1].plot(neuron.time, synapse.nmda_conductance * 1000, linewidth = 0.5)
+
+        axs[1].set_xlabel("Time, ms")
+        axs[1].set_ylabel(r"Conductance, nS")
+        axs[1].set_title("NMDA conductance")
+
+        for synapse in neuron.synapses:
+            axs[2].plot(neuron.time, (synapse.ampa_conductance + synapse.nmda_conductance) * 1000, linewidth = 0.5)
+
+        axs[2].set_xlabel("Time, ms")
+        axs[2].set_ylabel(r"Conductance, nS")
+        axs[2].set_title("AMPA and NMDA conductance")
+
+        fig.tight_layout()
 
     @staticmethod
     def plot_soma_voltage(neuron, scaled = True):
