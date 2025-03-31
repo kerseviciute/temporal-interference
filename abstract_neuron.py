@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from abc import ABC, abstractmethod
 import time
 
+
 class AbstractNeuron(ABC):
     """
     The abstract neuron class encapsulates all steps to initialize
@@ -95,12 +96,7 @@ class AbstractNeuron(ABC):
         # Set membrane potential to resting values
         h.finitialize(h.Vrest)
         # Calculate the currents
-
-        # TODO: needs checking
-        if h.cvode.active():
-            h.cvode.re_init()
-        else:
-            h.fcurrent()
+        h.fcurrent()
 
         for section in h.allsec():
             if h.ismembrane("na3", sec = section) or \
