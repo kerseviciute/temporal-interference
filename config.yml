@@ -2,3 +2,4 @@ project: temporal-interference
 
 figures:
   - neuron_model.png
+  - neuron_model_with_synapses.png

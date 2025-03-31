@@ -3,6 +3,8 @@
 ## Future problems
 
 - [ ] mechanism of choice does not implement depression
+- [ ] cell morphology (cell c62564) has been updated to include an axon: https://neuromorpho.org/neuron_info.jsp?neuron_name=c62564
+- [ ]
 
 ## TODO
 
@@ -11,10 +13,10 @@
 - [ ] How to create multiple separate neurons in a single python session?
 
 - [x] Run LTP protocol + obtain weights with / without electric field
-- [ ] Use weights obtained during LTP and run with naturally occurring inputs with / without electric field
-- [ ] Use weights obtained during LTP and run with unsynchronised Poisson inputs with / without electric field
+- [x] Use weights obtained during LTP and run with naturally occurring inputs with / without electric field
+- [x] Use weights obtained during LTP and run with unsynchronised Poisson inputs with / without electric field
 
-- [ ] AP threshold electric field strength
+- [x] AP threshold electric field strength
 - [ ] Test the effect of the orientation of the electric field on synaptic plasticity (esp. parallel vs perpendicular)
 - [x] Insert NMDA
 
