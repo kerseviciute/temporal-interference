@@ -4,7 +4,22 @@ configfile: "config.yml"
 
 rule all:
     input:
-        expand("{project}/{figure}", project = config["project"], figure = config["figures"])
+        expand("{project}/{figure}", project = config["project"], figure = config["figures"]),
+        expand(
+            "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 50),
+            carrier = 0
+        ),
+        expand(
+            "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 50),
+            carrier = 1000,
+            phi = 90,
+            psi = 90,
+            offset = [5, 130]
+        )
 
 rule neuron_model:
     output:
@@ -62,10 +77,10 @@ rule ltp_no_ef:
     input:
         seeds = "output/{project}/seeds.csv"
     output:
-        synapse_info = "output/{project}/ltp/{idx}/{carrier}/synapse_info.csv",
-        spike_frequency = "output/{project}/ltp/{idx}/{carrier}/spike_frequency.csv",
-        voltage = "output/{project}/ltp/{idx}/{carrier}/voltage.csv",
-        synapse_weights = "output/{project}/ltp/{idx}/{carrier}/synapse_weights.csv"
+        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
+        spike_frequency = "output/{project}/ltp/{idx}/no_ti/{carrier}/spike_frequency.csv",
+        voltage = "output/{project}/ltp/{idx}/no_ti/{carrier}/voltage.csv",
+        synapse_weights = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_weights.csv"
     params:
         n_synapses = 10,
         initial_conductance = 0.0001,
