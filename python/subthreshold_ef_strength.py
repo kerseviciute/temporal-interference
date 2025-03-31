@@ -48,11 +48,15 @@ def find_ef_amplitude(carrier, target, initial_amplitude = 1000, epsilon: float 
 phi = int(snakemake.wildcards["angle_phi"])
 psi = int(snakemake.wildcards["angle_psi"])
 carrier = int(snakemake.wildcards["carrier"])
-offsets = snakemake.params["offset_range"]
+offsets = list(map(float, snakemake.params["offset_range"]))
 phase = int(snakemake.params["phase"])
 duration = int(snakemake.params["duration"])
 initial_amplitude = int(snakemake.params["initial_amplitude"])
 epsilon = float(snakemake.params["accuracy"])
+
+# Make sure offset 0 and target 0 are not tested
+if carrier == 0 and 0 in offsets:
+    offsets.remove(0)
 
 print("Creating neuron model")
 neuron = PlasticNeuron(n_synapses = 0)
@@ -64,7 +68,7 @@ res = []
 for offset in offsets:
     print(f"Starting carrier {carrier} with target {offset}")
     amplitude = find_ef_amplitude(
-        carrier, float(offset),
+        carrier, offset,
         initial_amplitude = initial_amplitude,
         epsilon = epsilon,
         duration = duration,

@@ -1,5 +1,9 @@
 # Simulate the effects of a planar electric field at different frequencies on a realistic neuron
 
+## Notes
+
+- Variable time step implementation is not possible with Gfluct2.
+
 ## Future problems
 
 - [ ] mechanism of choice does not implement depression

@@ -5,6 +5,7 @@ import matplotlib
 import plotly.graph_objects as go
 from abc import ABC, abstractmethod
 import time
+import numpy as np
 
 
 class AbstractNeuron(ABC):
@@ -134,9 +135,11 @@ class AbstractNeuron(ABC):
     def get_synapse_info(self):
         pass
 
-    def plot(self):
-        # Do not show Burst cells
-        neuron_sections = h.SectionList([sec for sec in h.allsec() if "Burst" not in str(sec) and "sField" not in str(sec)])
+    def plot(self, draw_ef = False):
+        # Do not show Burst cells or electric field components
+        neuron_sections = h.SectionList([
+            sec for sec in h.allsec() if "Burst" not in str(sec) and "sField" not in str(sec) and "sElec" not in str(sec)
+        ])
 
         ps = h.PlotShape(neuron_sections, False)
         ps.show(1)
@@ -154,7 +157,69 @@ class AbstractNeuron(ABC):
             )
         )
 
-        synapse_info = self.__get_synapse_info()
+        if draw_ef:
+            #
+            # Show direction of the electric field
+            #
+            x = h.sField.x3d(1)
+            y = h.sField.y3d(1)
+            z = h.sField.z3d(1)
+
+            end = [x, y, z]
+            start = [0, 0, 0]
+
+            fig.add_trace(
+                go.Cone(
+                    x = [end[0]], y = [end[1]], z = [end[2]],
+                    u = [end[0] - start[0]],
+                    v = [end[1] - start[1]],
+                    w = [end[2] - start[2]],
+                    sizemode = "absolute",
+                    sizeref = 50,
+                    anchor = "tip",
+                    colorscale = [[0, "red"], [1, "red"]],
+                    showscale = False
+                )
+            )
+
+            fig.add_trace(
+                go.Scatter3d(
+                    x = [start[0], end[0]],
+                    y = [start[1], end[1]],
+                    z = [start[2], end[2]],
+                    mode = "lines",
+                    line = dict(color = "red", width = 3)
+                )
+            )
+
+            normal = [h.sField.x3d(1), h.sField.y3d(1), h.sField.z3d(1)]
+            a, b, c = normal
+
+            x = np.linspace(-1000, 1000, 10)
+            y = np.linspace(-1000, 1000, 10)
+            x, y = np.meshgrid(x, y)
+            z = (-a * x - b * y) / c
+
+            fig.add_trace(
+                go.Surface(x = x, y = y, z = z, opacity = 0.25, colorscale = "gray", showscale = False)
+            )
+
+            # Clipping due to large plane size
+            fig.update_layout(
+                scene = dict(
+                    zaxis = dict(
+                        range = [-350, 350]
+                    ),
+                    yaxis = dict(
+                        range = [-450, 550]
+                    ),
+                    xaxis = dict(
+                        range = [-500, 500]
+                    )
+                )
+            )
+
+        synapse_info = self.get_synapse_info()
         for i, synapse in synapse_info.iterrows():
             dendrite_idx = int(synapse.Dendrite)
             dendrite_loc = synapse.Location
