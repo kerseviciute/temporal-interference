@@ -38,3 +38,39 @@ rule subthreshold_ef_strength:
         accuracy = 0.5
     conda: "neuron"
     script: "python/subthreshold_ef_strength.py"
+
+rule ltp:
+    input:
+        seeds = "output/{project}/seeds.csv",
+        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
+    output:
+        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+        spike_frequency = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
+        voltage = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
+        synapse_weights = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
+    params:
+        n_synapses = 10,
+        initial_conductance = 0.0001,
+        duration = 2000, # ms
+        ltp_duration = 1000, # ms
+        ltp_frequency = 100, # Hz
+        ef_strength = 0.9, # fraction of subthreshold amplitude
+    conda: "neuron"
+    script: "python/ltp.py"
+
+rule ltp_no_ef:
+    input:
+        seeds = "output/{project}/seeds.csv"
+    output:
+        synapse_info = "output/{project}/ltp/{idx}/{carrier}/synapse_info.csv",
+        spike_frequency = "output/{project}/ltp/{idx}/{carrier}/spike_frequency.csv",
+        voltage = "output/{project}/ltp/{idx}/{carrier}/voltage.csv",
+        synapse_weights = "output/{project}/ltp/{idx}/{carrier}/synapse_weights.csv"
+    params:
+        n_synapses = 10,
+        initial_conductance = 0.0001,
+        duration = 2000, # ms
+        ltp_duration = 1000, # ms
+        ltp_frequency = 100 # Hz
+    conda: "neuron"
+    script: "python/ltp.py"
