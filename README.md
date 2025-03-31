@@ -1,5 +1,11 @@
 # Simulate the effects of a planar electric field at different frequencies on a realistic neuron
 
+## Snakemake run
+
+```shell
+snakemake --use-conda --rerun-triggers mtime --cores 4
+```
+
 ## Notes
 
 - Variable time step implementation is not possible with Gfluct2.

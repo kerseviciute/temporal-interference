@@ -19,6 +19,21 @@ rule all:
             phi = 90,
             psi = 90,
             offset = [5, 130]
+        ),
+        expand(
+            "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 10),
+            carrier = 0
+        ),
+        expand(
+            "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 10),
+            carrier = 1000,
+            phi = 90,
+            psi = 90,
+            offset = [5, 130]
         )
 
 rule neuron_model:
@@ -69,7 +84,7 @@ rule ltp:
         duration = 2000, # ms
         ltp_duration = 1000, # ms
         ltp_frequency = 100, # Hz
-        ef_strength = 0.9, # fraction of subthreshold amplitude
+        ef_strength = 0.9 # fraction of subthreshold amplitude
     conda: "neuron"
     script: "python/ltp.py"
 
@@ -89,3 +104,36 @@ rule ltp_no_ef:
         ltp_frequency = 100 # Hz
     conda: "neuron"
     script: "python/ltp.py"
+
+rule poisson:
+    input:
+        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+        seeds = "output/{project}/seeds.csv",
+        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
+    output:
+        synapse_info = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+        spike_frequency = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
+        voltage = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
+        synapse_weights = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
+    params:
+        duration = 5 * 60 * 1000, # ms, 5 minutes
+        rate = 5, # Hz, poisson rate
+        ef_strength = 0.9 # fraction of subthreshold amplitude
+    conda: "neuron"
+    script: "python/poisson.py"
+
+rule poisson_no_ef:
+    input:
+        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
+        seeds = "output/{project}/seeds.csv"
+    output:
+        synapse_info = "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_info.csv",
+        spike_frequency = "output/{project}/poisson/{idx}/no_ti/{carrier}/spike_frequency.csv",
+        voltage = "output/{project}/poisson/{idx}/no_ti/{carrier}/voltage.csv",
+        synapse_weights = "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_weights.csv"
+    params:
+        duration = 5 * 60 * 1000, # ms, 5 minutes
+        rate = 5 # Hz, poisson rate
+    conda: "neuron"
+    script: "python/poisson.py"
+
