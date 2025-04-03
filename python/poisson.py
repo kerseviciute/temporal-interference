@@ -17,7 +17,6 @@ from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
 from neuron_utils import NeuronUtils
 
-
 synapse_info = pd.read_csv(snakemake.input["synapse_info"])
 # Resetting the delay
 synapse_info.Delay = 0
@@ -141,5 +140,10 @@ synapse_weights = pd.DataFrame({
 for i, synapse in enumerate(neuron.synapses):
     synapse_weights[f"Synapse{i}"] = synapse.weights
 
-synapse_weights.to_csv(snakemake.output["synapse_weights"])
+# Drop duplicated synaptic weights for saving up the space
+synapse_weights = synapse_weights.drop_duplicates(
+    subset = [f"Synapse{i}" for i in range(0, 10)],
+    keep = "first"
+)
 
+synapse_weights.to_csv(snakemake.output["synapse_weights"])
