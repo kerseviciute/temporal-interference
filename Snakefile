@@ -34,6 +34,21 @@ rule all:
             phi = 90,
             psi = 90,
             offset = [5, 130]
+        ),
+        expand(
+            "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 16),
+            carrier = 0
+        ),
+        expand(
+            "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 16),
+            carrier = 1000,
+            phi = 90,
+            psi = 90,
+            offset = [5, 130]
         )
 
 rule neuron_model:
@@ -136,4 +151,43 @@ rule poisson_no_ef:
         rate = 5 # Hz, poisson rate
     conda: "neuron"
     script: "python/poisson.py"
+
+rule poisson_theta:
+    input:
+        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+        seeds = "output/{project}/seeds.csv",
+        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
+    output:
+        synapse_info = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
+        spike_frequency = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
+        voltage = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
+        synapse_weights = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
+    params:
+        duration = 1 * 60 * 1000, # ms, 1 minute
+        rate = 5, # Hz, poisson rate
+        ef_strength = 0.9, # fraction of subthreshold amplitude
+        burst_duration = 50,
+        rate_in_burst = 100, # firing frequency during bursting interval
+        rate_outside_burst = 1 # firing frequency outside bursting interval
+    conda: "neuron"
+    script: "python/poisson_in_frequency.py"
+
+rule poisson_theta_no_ef:
+    input:
+        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
+        seeds = "output/{project}/seeds.csv"
+    output:
+        synapse_info = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_info.csv",
+        spike_frequency = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/spike_frequency.csv",
+        voltage = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/voltage.csv",
+        synapse_weights = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_weights.csv"
+    params:
+        duration = 1 * 60 * 1000, # ms, 1 minute
+        rate = 5, # Hz, poisson rate
+        burst_duration = 50,
+        rate_in_burst = 100, # firing frequency during bursting interval
+        rate_outside_burst = 1 # firing frequency outside bursting interval
+    conda: "neuron"
+    script: "python/poisson_in_frequency.py"
+
 
