@@ -87,7 +87,7 @@ amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[
 amplitude *= ef_strength
 amplitude = int(amplitude)
 
-print("Performing LTP protocol with EF")
+print("Random Poisson inputs with TI")
 print(f"carrier = {carrier} Hz")
 print(f"offset = {offset} Hz")
 print(f"amplitude = {amplitude} V/m ({int(ef_strength * 100)}% of original strength)")
