@@ -6,7 +6,7 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pandas as pd
 import csv
@@ -27,7 +27,7 @@ seed_idx = int(snakemake.wildcards["idx"])
 seed = int(seeds.iloc[seed_idx].Seed)
 
 n_synapses = int(snakemake.params["n_synapses"])
-initial_weight = float(snakemake.params["initial_weight"])
+initial_weight = float(snakemake.wildcards["initial_weight"])
 
 # Read the initial conductance from the file
 with open(snakemake.input["subthreshold_conductance"], "r") as file:
@@ -76,11 +76,11 @@ neuron = PlasticNeuron(
     generate_stimulus = ltp_stimulus
 )
 
-carrier = int(snakemake.params["carrier"])
-offset = int(snakemake.params["offset"])
+carrier = int(snakemake.wildcards["carrier"])
+offset = int(snakemake.wildcards["offset"])
 phase = int(snakemake.params["phase"])
 
-ef_strength = float(snakemake.params["ef_strength"])
+ef_strength = float(snakemake.wildcards["ef_strength"])
 subthreshold = pd.read_csv(snakemake.input["subthreshold_ef"])
 amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[0]
 amplitude *= ef_strength
