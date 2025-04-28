@@ -2,7 +2,7 @@ from neuron import h
 import numpy as np
 
 
-class Synapse:
+class SynapseCA3:
     # NOTE: the synaptic model used here cannot undergo LTD!
 
     def __init__(
@@ -17,8 +17,10 @@ class Synapse:
         self.dendrite = dendrite_idx
         self.position = dendrite_loc
 
+        self.initial_weight = initial_weight
+
         self.ampa = h.STDPE2bis(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
-        self.ampa.initial_weight = initial_weight * initial_conductance
+        self.ampa.initial_weight = self.initial_weight * initial_conductance
         self.nmda = h.nmdanet(dendrite_loc, sec = h.apical_dendrite[dendrite_idx])
         self.stimulus = stimulus
         self.delay = delay
@@ -41,6 +43,12 @@ class Synapse:
 
         self.__stim_times = h.Vector()
         self.connection_ampa.record(self.__stim_times)
+
+    def set_initial_conductance(self, conductance: float):
+        self.connection_nmda.weight[0] = conductance
+        self.connection_ampa.weight[0] = conductance
+
+        self.ampa.initial_weight = self.initial_weight * conductance
 
     @staticmethod
     def __connect(synapse, stimulus, delay: float = 0.0, initial_conductance: float = 1.0):

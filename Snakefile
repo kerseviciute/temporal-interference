@@ -2,66 +2,15 @@ import numpy as np
 
 configfile: "config.yml"
 
+include: "rules/subthreshold_conductance.smk"
+
 rule all:
     input:
-        expand("{project}/{figure}", project = config["project"], figure = config["figures"]),
         expand(
-            "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
+            "output/{project}/subthreshold_conductance/{idx}.txt",
             project = config["project"],
-            idx = np.arange(0, 50),
-            carrier = 0
-        ),
-        expand(
-            "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-            project = config["project"],
-            idx = np.arange(0, 50),
-            carrier = 1000,
-            phi = 90,
-            psi = 90,
-            offset = [5, 130]
-        ),
-        expand(
-            "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_info.csv",
-            project = config["project"],
-            idx = np.arange(0, 10),
-            carrier = 0
-        ),
-        expand(
-            "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-            project = config["project"],
-            idx = np.arange(0, 10),
-            carrier = 1000,
-            phi = 90,
-            psi = 90,
-            offset = [5, 130]
-        ),
-        expand(
-            "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_info.csv",
-            project = config["project"],
-            idx = np.arange(0, 16),
-            carrier = 0
-        ),
-        expand(
-            "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-            project = config["project"],
-            idx = np.arange(0, 16),
-            carrier = 1000,
-            phi = 90,
-            psi = 90,
-            offset = [5, 130]
+            idx = np.arange(0, 20)
         )
-
-rule neuron_model:
-    output:
-        png = "{project}/neuron_model.png"
-    conda: "neuron"
-    script: "figures/neuron_model.py"
-
-rule neuron_model_with_synapses:
-    output:
-        png = "{project}/neuron_model_with_synapses.png"
-    conda: "neuron"
-    script: "figures/neuron_model_with_synapses.py"
 
 rule generate_seeds:
     output:
@@ -71,123 +20,3 @@ rule generate_seeds:
         n = 50
     conda: "neuron"
     script: "python/generate_seeds.py"
-
-rule subthreshold_ef_strength:
-    output:
-        subthreshold = "output/{project}/ef/{angle_phi}_{angle_psi}_{carrier}.csv"
-    params:
-        offset_range = np.concatenate([[0], [0.5], np.arange(1, 10, 1), np.arange(10, 50, 5), np.arange(50, 140, 10)]),
-        phase = 10,
-        duration = 500,
-        initial_amplitude = 1000,
-        accuracy = 0.5
-    conda: "neuron"
-    script: "python/subthreshold_ef_strength.py"
-
-rule ltp:
-    input:
-        seeds = "output/{project}/seeds.csv",
-        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
-    output:
-        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-        spike_frequency = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
-        voltage = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
-        synapse_weights = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
-    params:
-        n_synapses = 10,
-        initial_conductance = 0.0001,
-        duration = 2000, # ms
-        ltp_duration = 1000, # ms
-        ltp_frequency = 100, # Hz
-        ef_strength = 0.9 # fraction of subthreshold amplitude
-    conda: "neuron"
-    script: "python/ltp.py"
-
-rule ltp_no_ef:
-    input:
-        seeds = "output/{project}/seeds.csv"
-    output:
-        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
-        spike_frequency = "output/{project}/ltp/{idx}/no_ti/{carrier}/spike_frequency.csv",
-        voltage = "output/{project}/ltp/{idx}/no_ti/{carrier}/voltage.csv",
-        synapse_weights = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_weights.csv"
-    params:
-        n_synapses = 10,
-        initial_conductance = 0.0001,
-        duration = 2000, # ms
-        ltp_duration = 1000, # ms
-        ltp_frequency = 100 # Hz
-    conda: "neuron"
-    script: "python/ltp.py"
-
-rule poisson:
-    input:
-        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-        seeds = "output/{project}/seeds.csv",
-        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
-    output:
-        synapse_info = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-        spike_frequency = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
-        voltage = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
-        synapse_weights = "output/{project}/poisson/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
-    params:
-        duration = 5 * 60 * 1000, # ms, 5 minutes
-        rate = 5, # Hz, poisson rate
-        ef_strength = 0.9 # fraction of subthreshold amplitude
-    conda: "neuron"
-    script: "python/poisson.py"
-
-rule poisson_no_ef:
-    input:
-        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
-        seeds = "output/{project}/seeds.csv"
-    output:
-        synapse_info = "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_info.csv",
-        spike_frequency = "output/{project}/poisson/{idx}/no_ti/{carrier}/spike_frequency.csv",
-        voltage = "output/{project}/poisson/{idx}/no_ti/{carrier}/voltage.csv",
-        synapse_weights = "output/{project}/poisson/{idx}/no_ti/{carrier}/synapse_weights.csv"
-    params:
-        duration = 5 * 60 * 1000, # ms, 5 minutes
-        rate = 5 # Hz, poisson rate
-    conda: "neuron"
-    script: "python/poisson.py"
-
-rule poisson_theta:
-    input:
-        synapse_info = "output/{project}/ltp/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-        seeds = "output/{project}/seeds.csv",
-        subthreshold = "output/{project}/ef/{phi}_{psi}_{carrier}.csv"
-    output:
-        synapse_info = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_info.csv",
-        spike_frequency = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/spike_frequency.csv",
-        voltage = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/voltage.csv",
-        synapse_weights = "output/{project}/poisson_theta/{idx}/{carrier}/{phi}_{psi}_{offset}/synapse_weights.csv"
-    params:
-        duration = 1 * 60 * 1000, # ms, 1 minute
-        rate = 5, # Hz, poisson rate
-        ef_strength = 0.9, # fraction of subthreshold amplitude
-        burst_duration = 50,
-        rate_in_burst = 100, # firing frequency during bursting interval
-        rate_outside_burst = 1 # firing frequency outside bursting interval
-    conda: "neuron"
-    script: "python/poisson_in_frequency.py"
-
-rule poisson_theta_no_ef:
-    input:
-        synapse_info = "output/{project}/ltp/{idx}/no_ti/{carrier}/synapse_info.csv",
-        seeds = "output/{project}/seeds.csv"
-    output:
-        synapse_info = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_info.csv",
-        spike_frequency = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/spike_frequency.csv",
-        voltage = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/voltage.csv",
-        synapse_weights = "output/{project}/poisson_theta/{idx}/no_ti/{carrier}/synapse_weights.csv"
-    params:
-        duration = 1 * 60 * 1000, # ms, 1 minute
-        rate = 5, # Hz, poisson rate
-        burst_duration = 50,
-        rate_in_burst = 100, # firing frequency during bursting interval
-        rate_outside_burst = 1 # firing frequency outside bursting interval
-    conda: "neuron"
-    script: "python/poisson_in_frequency.py"
-
-

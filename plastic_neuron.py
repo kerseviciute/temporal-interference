@@ -4,7 +4,8 @@ from abstract_neuron import AbstractNeuron
 from neuron import h
 import random
 from neuron_utils import NeuronUtils
-from synapse import Synapse
+from synapse_ca3 import SynapseCA3
+# from synapse_basket import SynapseBasket
 from copy import deepcopy
 
 
@@ -30,7 +31,16 @@ class PlasticNeuron(AbstractNeuron):
             synapse_info = None,
 
             generate_stimulus = NeuronUtils.create_constant_freq_stimulus,
-            generate_delay = lambda: 0
+            generate_delay = lambda: 0,
+
+            # # Parameters for inhibitory basket cells
+            # basket_n_synapses = 0,
+            # basket_fraction = None,
+            # basket_conductance: float = 0.0,
+            # basket_min_distance = 0,
+            # basket_max_distance = 100,
+            # basket_generate_delay = lambda: 5,
+            # basket_generate_stimulus = NeuronUtils.create_constant_freq_stimulus
     ):
         """
         NOTE: initialization order is important.
@@ -77,6 +87,26 @@ class PlasticNeuron(AbstractNeuron):
 
         self.generate_delay = generate_delay
 
+        # Inhibitory basket cell definitions
+        # self.basket_n_synapses = basket_n_synapses
+        #
+        # if basket_fraction is None:
+        #     basket_fraction = dict({
+        #         "Soma": 1 / 3,
+        #         "Apical": 1 / 3,
+        #         "Basal": 1 / 3
+        #     })
+        #
+        # self.basket_fraction = basket_fraction
+        # self.basket_conductance = basket_conductance
+        # self.basket_min_distance = basket_min_distance
+        # self.basket_max_distance = basket_max_distance
+        # self.basket_generate_delay = basket_generate_delay
+        # self.basket_generate_stimulus = basket_generate_stimulus
+        #
+        # self.basket_synapse_info = pd.DataFrame()
+        # self.basket_synapses = []
+
         super().__init__()
 
         self.__v = h.Vector().record(h.soma[0](0.5)._ref_v)
@@ -87,6 +117,8 @@ class PlasticNeuron(AbstractNeuron):
         ap_connection = h.NetCon(h.soma[0](0.5)._ref_v, None, sec = h.soma[0])
         ap_connection.threshold = ap_threshold
         ap_connection.record(self.__spike_times)
+
+        self.__input_stimulus = h.Vector().record(h.soma[0](0.5).xtrau._ref_er)
 
     def get_synapse_info(self):
         return self.synapse_info
@@ -105,7 +137,7 @@ class PlasticNeuron(AbstractNeuron):
 
         synapse_info = []
         for synapse in range(self.n_synapses):
-            dendrite_idx, dendrite_loc, distance = NeuronUtils.generate_synapse_location(
+            dendrite_idx, dendrite_loc, distance = NeuronUtils.generate_synapse_location_apical(
                 n_apical_dendrites = n_apical_dendrites,
                 max_distance = self.max_distance,
                 min_distance = self.min_distance
@@ -152,7 +184,7 @@ class PlasticNeuron(AbstractNeuron):
 
         stimulus = self.generate_stimulus()
 
-        synapse = Synapse(
+        synapse = SynapseCA3(
             dendrite_idx = dendrite_idx,
             dendrite_loc = dendrite_loc,
             stimulus = stimulus,
@@ -190,9 +222,11 @@ class PlasticNeuron(AbstractNeuron):
         if self.synapse_info is not None:
             print("Reading synapse information")
             self.__read_synapses()
+            # TODO: save and read basket cell information
         else:
             print("Generating synapse information")
             self.__generate_synapses()
+            # self.__generate_basket_synapse()
 
     def get_final_synapse_info(self):
         synapse_info = deepcopy(self.synapse_info)
@@ -201,6 +235,12 @@ class PlasticNeuron(AbstractNeuron):
         synapse_info.InitialWeight = final_weights
 
         return synapse_info
+
+    def set_initial_conductance(self, conductance):
+        for synapse in self.synapses:
+            synapse.set_initial_conductance(conductance)
+
+        self.synapse_info.Conductance = conductance
 
     @property
     def voltage(self):
@@ -228,3 +268,75 @@ class PlasticNeuron(AbstractNeuron):
             spike_time = []
 
         return instantaneous_freq, spike_time
+
+    @property
+    def input_stimulus(self):
+        return np.array(self.__input_stimulus)
+
+    # def __determine_basket_compartment(self):
+    #     probability = random.uniform(0, 1)
+    #     soma, apical = self.basket_fraction["Soma"], self.basket_fraction["Apical"]
+    #     if probability < soma: return "Soma"
+    #     if probability < soma + apical: return "Apical"
+    #     return "Basal"
+    #
+    # def __generate_basket_synapse(self):
+    #     """
+    #     Generates and inserts new inhibitory basket synapses at random locations.
+    #
+    #     :return: None
+    #     """
+    #     random.seed(self.seed)
+    #
+    #     print(f"Inserting {self.basket_n_synapses} inhibitory basket synapses")
+    #
+    #     synapse_info = []
+    #     for synapse in range(self.basket_n_synapses):
+    #         compartment_type = self.__determine_basket_compartment()
+    #         print(f"Inserting basket cell in compartment: {compartment_type}")
+    #
+    #         compartment, idx, location, distance = NeuronUtils.generate_synapse_location(
+    #             compartment_type = compartment_type,
+    #             max_distance = self.basket_max_distance,
+    #             min_distance = self.basket_min_distance
+    #         )
+    #
+    #         delay = self.basket_generate_delay()
+    #
+    #         self.__insert_basket_synapses(
+    #             compartment = compartment,
+    #             location = location,
+    #             delay = delay,
+    #             conductance = self.basket_conductance
+    #         )
+    #
+    #         synapse_info.append(pd.DataFrame({
+    #             "Compartment": [compartment_type],
+    #             "CompartmentID": [idx],
+    #             "Location": [location],
+    #             "Distance": [distance],
+    #             "Delay": [delay],
+    #             "Conductance": [self.basket_conductance]
+    #         }))
+    #
+    #     if self.basket_n_synapses > 0:
+    #         self.basket_synapse_info = pd.concat(synapse_info, ignore_index = True)
+    #
+    # def __insert_basket_synapses(
+    #         self,
+    #         compartment,
+    #         location,
+    #         delay,
+    #         conductance
+    # ):
+    #     stimulus = self.basket_generate_stimulus()
+    #
+    #     synapse = SynapseBasket(
+    #         compartment = compartment,
+    #         location = location,
+    #         stimulus = stimulus,
+    #         delay = delay,
+    #         conductance = conductance
+    #     )
+    #
+    #     self.basket_synapses.append(synapse)
