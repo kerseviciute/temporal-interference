@@ -16,6 +16,12 @@ rule all:
 
         ### LTP protocol with subthreshold conductance
         expand(
+            "output/{project}/{idx}/subthreshold_conductance/ltp/noTI_{initial_weight}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 20),
+            initial_weight = 0.1
+        ),
+        expand(
             "output/{project}/{idx}/subthreshold_conductance/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_info.csv",
             project = config["project"],
             idx = np.arange(0, 20),
@@ -24,10 +30,33 @@ rule all:
             ef_strength = [0.9, 1],
             initial_weight = 0.1
         ),
+
+        ### Random poisson inputs with subthreshold conductance
         expand(
-            "output/{project}/{idx}/subthreshold_conductance/ltp/noTI_{initial_weight}/synapse_info.csv",
+            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/noTI_{initial_weight}/synapse_info.csv",
             project = config["project"],
             idx = np.arange(0, 20),
+            rate = 5,
+            initial_weight = 0.1
+        ),
+        expand(
+            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 20),
+            rate = [5],
+            carrier = 1000,
+            offset = [5, 130],
+            ef_strength = 0.9,
+            initial_weight = 0.1
+        ),
+        expand(
+            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_info.csv",
+            project = config["project"],
+            idx = np.arange(0, 20),
+            rate = [5],
+            carrier = 1000,
+            offset = 0,
+            ef_strength = 0.25,
             initial_weight = 0.1
         )
 
