@@ -38,36 +38,58 @@ np.random.seed(seed)
 seeds = np.random.choice(range(10000), n_synapses, replace = False)
 seed_counter = -1
 
-rate = int(snakemake.wildcards["rate"])
+rate = int(snakemake.params["rate"])
+burst_duration = int(snakemake.params["burst_duration"])
+rate_in_burst = int(snakemake.wildcards["rate_in_burst"])
+rate_outside_burst = int(snakemake.params["rate_outside_burst"])
 
 duration = int(snakemake.params["duration"])
 
 
-def generate_poisson_spike_times(rate, duration):
-    """Generate Poisson-distributed spike times."""
-    spikes = []
-    t = np.random.exponential(1000 / rate)
-    spikes.append(t)
+def generate_poisson(
+        frequency = 5,
+        burst_duration = 50,
+        duration = 1000,
+        rate_in_burst = 100,
+        rate_outside_burst = 1
+):
+    burst_times = np.arange(0, duration, 1000 / frequency)
+    spike_times = []
 
-    while t < duration:
-        spikes.append(t)
-        isi = np.random.exponential(1000 / rate)  # Exponential ISI
-        t += isi
+    for t_burst in burst_times:
+        # Generate Poisson spikes inside the burst window
+        n_spikes = np.random.poisson(rate_in_burst * (burst_duration / 1000))
+        spikes = t_burst + np.random.uniform(0, burst_duration, size = n_spikes)
+        spike_times.extend(spikes)
 
-    return spikes
+        # Generate sparse spikes outside bursts
+        outside_duration = (1000 / frequency) - burst_duration
+        if outside_duration > 0:
+            n_out = np.random.poisson(rate_outside_burst * (outside_duration / 1000))
+            spikes_out = t_burst + burst_duration + np.random.uniform(0, outside_duration, size = n_out)
+            spike_times.extend(spikes_out)
+
+    spike_times = np.sort(np.array(spike_times))
+    return spike_times
 
 
 # Define the stimulus
-def poisson_stimulus():
+def poisson_theta():
     global seed_counter
     seed_counter += 1
 
     np.random.seed(seeds[seed_counter])
 
     # Generate spike times
-    spike_times = generate_poisson_spike_times(rate, duration)
-
+    spike_times = generate_poisson(
+        frequency = rate,
+        duration = duration,
+        burst_duration = burst_duration,
+        rate_in_burst = rate_in_burst,
+        rate_outside_burst = rate_outside_burst
+    )
     spike_vec = h.Vector(spike_times)
+
     stimulus = h.VecStim()
     stimulus.play(spike_vec)
 
@@ -76,11 +98,11 @@ def poisson_stimulus():
 
 neuron = PlasticNeuron(
     synapse_info = synapse_info,
-    generate_stimulus = poisson_stimulus
+    generate_stimulus = poisson_theta
 )
 
 NeuronUtils.set_stimulus(duration = 0, amplitude = 0)
-print("Random Poisson inputs without EF")
+print("Theta bursts without TI")
 
 print(f"Running simulation for {duration} ms")
 print(f"Starting at: {datetime.now().strftime('%H:%M:%S')}")

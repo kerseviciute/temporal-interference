@@ -18,12 +18,17 @@ from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
 from neuron_utils import NeuronUtils
 
-n_synapses = int(snakemake.params["n_synapses"])
 initial_weight = float(snakemake.wildcards["initial_weight"])
 
 # Read the initial conductance from the file
 with open(snakemake.input["subthreshold_conductance"], "r") as file:
     initial_conductance = float(file.read())
+
+synapse_info = pd.read_csv(snakemake.input["synapse_info"], index_col = 0)
+synapse_info.InitialWeight = initial_weight
+synapse_info.Conductance = initial_conductance
+
+n_synapses = len(synapse_info)
 
 # Seed will be used to generate the Poisson stimuli
 seeds = pd.read_csv(snakemake.input["seeds"])
@@ -70,10 +75,7 @@ def poisson_stimulus():
 
 
 neuron = PlasticNeuron(
-    n_synapses = n_synapses,
-    seed = seed,
-    initial_conductance = initial_conductance,
-    initial_weight = initial_weight,
+    synapse_info = synapse_info,
     generate_stimulus = poisson_stimulus
 )
 
@@ -106,10 +108,6 @@ print(f"Starting at: {datetime.now().strftime('%H:%M:%S')}")
 neuron.run(duration)
 
 # Save the data
-
-# Save synapse location info
-synapse_info = neuron.get_final_synapse_info()
-synapse_info.to_csv(snakemake.output["synapse_info"])
 
 # Save spike frequency
 spike_frequency, spike_time = neuron.spike_frequency

@@ -6,10 +6,9 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pandas as pd
-import csv
 from neuron import h
 from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
@@ -21,11 +20,14 @@ ltp_start = int(snakemake.params["ltp_start"])
 ltp_duration = int(snakemake.params["ltp_duration"])
 ltp_frequency = int(snakemake.params["ltp_frequency"])
 
-initial_weight = float(snakemake.wildcards["initial_weight"])
+conductance_strength = float(snakemake.wildcards["conductance_strength"])
 
 # Read the initial conductance from the file
 with open(snakemake.input["subthreshold_conductance"], "r") as file:
     initial_conductance = float(file.read())
+    initial_conductance *= conductance_strength
+
+initial_weight = float(snakemake.params["initial_weight"])
 
 synapse_info = pd.read_csv(snakemake.input["synapse_info"], index_col = 0)
 synapse_info.InitialWeight = initial_weight
@@ -34,7 +36,6 @@ synapse_info.Conductance = initial_conductance
 test_stimulus_1, test_stimulus_2 = [
     int(stimulus_time) for stimulus_time in snakemake.params["test_stim_times"]
 ]
-
 
 def generate_ltp_spike_times():
     """Generate Poisson-distributed spike times."""
@@ -65,49 +66,18 @@ def ltp_stimulus():
 
     return stimulus
 
-
 neuron = PlasticNeuron(
     synapse_info = synapse_info,
     generate_stimulus = ltp_stimulus
 )
 
-carrier = int(snakemake.wildcards["carrier"])
-offset = int(snakemake.wildcards["offset"])
-phase = int(snakemake.params["phase"])
+NeuronUtils.set_stimulus(duration = 0)
 
-ef_strength = float(snakemake.wildcards["ef_strength"])
-subthreshold = pd.read_csv(snakemake.input["subthreshold_ef"])
-amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[0]
-amplitude *= ef_strength
-amplitude = int(amplitude)
-
-print("Performing LTP protocol with EF")
-print(f"carrier = {carrier} Hz")
-print(f"offset = {offset} Hz")
-print(f"amplitude = {amplitude} V/m ({int(ef_strength * 100)}% of original strength)")
-
-NeuronUtils.set_stimulus(
-    duration = ltp_duration + 200,
-    frequency1 = carrier,
-    frequency2 = carrier + offset,
-    phase = phase,
-    amplitude = amplitude,
-    delay = ltp_start - 100
-)
-
-print("Starting simulation")
+print(f"Starting simulation with conductance {format(initial_conductance * 1000, '.10f')} nS "
+      f"({round(conductance_strength * 100)}% of initial conductance strength)")
 neuron.run(duration = duration)
 
 # Save the data
-
-# Save spike frequency
-spike_frequency, spike_time = neuron.spike_frequency
-spike_frequency = pd.DataFrame({
-    "Frequency": spike_frequency,
-    "Time": spike_time
-})
-
-spike_frequency.to_csv(snakemake.output["spike_frequency"])
 
 # Save voltage
 voltage = pd.DataFrame({
@@ -125,30 +95,4 @@ synapse_weights = pd.DataFrame({
 for i, synapse in enumerate(neuron.synapses):
     synapse_weights[f"Synapse{i}"] = synapse.weights
 
-synapse_weights.to_csv(snakemake.output["synapse_weights"])
-
-# Save voltages at the synaptic locations
-
-synapse_voltage = pd.DataFrame({
-    "Time": neuron.time
-})
-
-for i, synapse in enumerate(neuron.synapses):
-    synapse_voltage[f"Synapse{i}"] = synapse.voltage
-
-synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
-
-# Save inputs to the synapse
-
-synapse_stimuli = []
-
-for i, synapse in enumerate(neuron.synapses):
-    synapse_stimuli.append(synapse.stimuli)
-
-synapse_stimuli = [list(row) for row in synapse_stimuli]
-max_len = max(len(row) for row in synapse_stimuli)
-padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
-
-with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
-    writer = csv.writer(f)
-    writer.writerows(padded_data)
+synapse_weights.to_csv(snakemake.output["weights"])

@@ -21,8 +21,9 @@ class PlasticNeuron(AbstractNeuron):
             # TODO: allow specifying a list of initial connection weights
             initial_conductance = 0.00005,
             initial_weight: float = 0,
-            min_distance = 100,
-            max_distance = 300,
+            min_distance = 100,  # 50?
+            max_distance = 350,  # 350
+            max_diameter = 1,  # avoid placing the synapses on the apical trunk
 
             ap_threshold = -20,
 
@@ -73,6 +74,7 @@ class PlasticNeuron(AbstractNeuron):
         self.initial_weight = initial_weight
         self.min_distance = min_distance
         self.max_distance = max_distance
+        self.max_diameter = max_diameter
 
         self.synapses = []
 
@@ -137,10 +139,11 @@ class PlasticNeuron(AbstractNeuron):
 
         synapse_info = []
         for synapse in range(self.n_synapses):
-            dendrite_idx, dendrite_loc, distance = NeuronUtils.generate_synapse_location_apical(
+            dendrite_idx, dendrite_loc, distance, diameter = NeuronUtils.generate_synapse_location_apical(
                 n_apical_dendrites = n_apical_dendrites,
                 max_distance = self.max_distance,
-                min_distance = self.min_distance
+                min_distance = self.min_distance,
+                max_diameter = self.max_diameter
             )
 
             delay = self.generate_delay()
@@ -157,6 +160,7 @@ class PlasticNeuron(AbstractNeuron):
                 "Dendrite": [dendrite_idx],
                 "Location": [dendrite_loc],
                 "Distance": [distance],
+                "Diameter": [diameter],
                 "Delay": [delay],
                 "Conductance": [self.initial_conductance],
                 "InitialWeight": [self.initial_weight]

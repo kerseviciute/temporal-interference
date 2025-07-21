@@ -220,6 +220,10 @@ class AbstractNeuron(ABC):
             )
 
         synapse_info = self.get_synapse_info()
+        if synapse_info is None or len(synapse_info) < 0:
+            fig.show(config = { "scrollZoom": False })
+            return
+
         for i, synapse in synapse_info.iterrows():
             dendrite_idx = int(synapse.Dendrite)
             dendrite_loc = synapse.Location

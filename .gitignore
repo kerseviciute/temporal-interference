@@ -7,3 +7,5 @@ output
 .ipynb_checkpoints
 __pycache__
 *.csv
+output2
+*.png

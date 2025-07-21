@@ -49,7 +49,7 @@ class NeuronUtils:
         return compartment, compartment_idx, loc_pos, distance_to_soma
 
     @staticmethod
-    def generate_synapse_location_apical(n_apical_dendrites, max_distance, min_distance):
+    def generate_synapse_location_apical(n_apical_dendrites, max_distance, min_distance, max_diameter):
         """
         Generates a random synapse location within the allowed distance bounds.
 
@@ -59,18 +59,18 @@ class NeuronUtils:
         :return: dendrite id, position along the dendrite, and distance to the soma
         """
 
-        distance_to_soma = max_distance + 1
-        dendrite_idx = -1
-        loc_pos = -1.0
-
-        while distance_to_soma > max_distance or distance_to_soma < min_distance:
+        while True:
             dendrite_idx = random.randint(0, n_apical_dendrites - 1)
             loc_pos = random.uniform(0, 1)
             dendrite = h.apical_dendrite[dendrite_idx]
 
             distance_to_soma = h.distance(dendrite(loc_pos))
+            diameter = dendrite(loc_pos).diam
 
-        return dendrite_idx, loc_pos, distance_to_soma
+            if min_distance < distance_to_soma < max_distance and diameter < max_diameter:
+                break
+
+        return dendrite_idx, loc_pos, distance_to_soma, diameter
 
     @staticmethod
     def create_burst_stimulus():

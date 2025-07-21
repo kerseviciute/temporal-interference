@@ -21,17 +21,15 @@ ltp_start = int(snakemake.params["ltp_start"])
 ltp_duration = int(snakemake.params["ltp_duration"])
 ltp_frequency = int(snakemake.params["ltp_frequency"])
 
-print("Initializing neuron with random synapses")
-seeds = pd.read_csv(snakemake.input["seeds"])
-seed_idx = int(snakemake.wildcards["idx"])
-seed = int(seeds.iloc[seed_idx].Seed)
-
-n_synapses = int(snakemake.params["n_synapses"])
 initial_weight = float(snakemake.wildcards["initial_weight"])
 
 # Read the initial conductance from the file
 with open(snakemake.input["subthreshold_conductance"], "r") as file:
     initial_conductance = float(file.read())
+
+synapse_info = pd.read_csv(snakemake.input["synapse_info"], index_col = 0)
+synapse_info.InitialWeight = initial_weight
+synapse_info.Conductance = initial_conductance
 
 test_stimulus_1, test_stimulus_2 = [
     int(stimulus_time) for stimulus_time in snakemake.params["test_stim_times"]
@@ -69,10 +67,7 @@ def ltp_stimulus():
 
 
 neuron = PlasticNeuron(
-    n_synapses = n_synapses,
-    seed = seed,
-    initial_conductance = initial_conductance,
-    initial_weight = initial_weight,
+    synapse_info = synapse_info,
     generate_stimulus = ltp_stimulus
 )
 
@@ -82,10 +77,6 @@ print("Starting simulation")
 neuron.run(duration = duration)
 
 # Save the data
-
-# Save synapse location info
-synapse_info = neuron.get_final_synapse_info()
-synapse_info.to_csv(snakemake.output["synapse_info"])
 
 # Save spike frequency
 spike_frequency, spike_time = neuron.spike_frequency

@@ -16,12 +16,6 @@ ltp_start = int(snakemake.params["ltp_start"])
 ltp_duration = int(snakemake.params["ltp_duration"])
 ltp_frequency = int(snakemake.params["ltp_frequency"])
 
-seeds = pd.read_csv(snakemake.input["seeds"])
-seed_idx = int(snakemake.wildcards["idx"])
-seed = int(seeds.iloc[seed_idx].Seed)
-print(f"{seed_idx}: Initializing neuron with random synapses")
-
-n_synapses = int(snakemake.params["n_synapses"])
 initial_weight = float(snakemake.params["initial_weight"])
 min_conductance = float(snakemake.params["min_conductance"])
 max_conductance = float(snakemake.params["max_conductance"])
@@ -34,6 +28,10 @@ test_stimulus_1, test_stimulus_2 = [
 
 time_before = 50
 time_after = 100
+
+synapse_info = pd.read_csv(snakemake.input["synaptic_configuration"], index_col = 0)
+synapse_info.Conductance = 0
+synapse_info.InitialWeight = initial_weight
 
 
 def find_conductance(
@@ -54,12 +52,11 @@ def find_conductance(
     conductance = (min_conductance + max_conductance) / 2
     step = (max_conductance - min_conductance) / 2
 
-    good_behavior = False
     last_conductance = conductance
 
     results = []
 
-    while step * 2 > epsilon or not good_behavior:
+    while True:
         print(f"Testing conductance: {format(conductance, '.8f')}")
         last_conductance = conductance
 
@@ -77,12 +74,16 @@ def find_conductance(
         spike_during = np.any(
             neuron.voltage[ltp_time] > -20
         )
-        dendritic_spikes = np.mean([ np.any(synapse.voltage[ ltp_time ] > -20) for synapse in neuron.synapses ])
+        dendritic_spikes = np.mean([np.any(synapse.voltage[ltp_time] > -20) for synapse in neuron.synapses])
+
+        ltp = np.mean([synapse.weights[-1] for synapse in neuron.synapses])
 
         print(f"Spike before: {spike_before} (False)")
         print(f"Spike after: {spike_after} (False)")
-        print(f"Spike during: {spike_during} (True)")
+        print(f"Spike during: {spike_during}")
         print(f"Percentage of dendritic spikes: {round(dendritic_spikes * 100)}%")
+        print(f"Average potentiation: {round(ltp * 100)}%")
+        print(f"Step: {format(step, '.10f')}")
 
         good_behavior = not spike_before and not spike_after and dendritic_spikes >= min_dendritic_spikes
 
@@ -92,6 +93,7 @@ def find_conductance(
             "SpikeAfter": [spike_after],
             "SpikeDuring": [spike_during],
             "DendriticSpikes": [dendritic_spikes],
+            "AveragePotentiation": [ltp],
             "Correct": [good_behavior],
             "Step": [step]
         }))
@@ -100,12 +102,15 @@ def find_conductance(
             conductance -= step
         if dendritic_spikes < min_dendritic_spikes:
             conductance += step
+        if good_behavior:
+            # Search for maximum conductance that still gives correct behavior
+            conductance += step
 
         print(f"Correct behavior: {good_behavior} (True)")
         print()
 
-        if good_behavior:
-            print("Correct behavior achieved")
+        if good_behavior and step < epsilon:
+            print(f"Correct behavior achieved with epsilon = {format(step, '.10f')} < {format(epsilon, '.10f')}")
             break
 
         step = step / 2
@@ -147,10 +152,7 @@ def ltp_stimulus():
 
 
 neuron = PlasticNeuron(
-    n_synapses = n_synapses,
-    seed = seed,
-    initial_conductance = 0,
-    initial_weight = initial_weight,
+    synapse_info = synapse_info,
     generate_stimulus = ltp_stimulus
 )
 
