@@ -4,7 +4,8 @@ configfile: "config.yml"
 
 include: "rules/subthreshold_ef.smk"
 include: "rules/subthreshold_conductance.smk"
-# include: "rules/carrier_amplitude.smk"
+
+include: "rules/in_vivo.smk"
 
 include: "rules/figures.smk"
 
@@ -17,6 +18,11 @@ rule all:
             project = config["project"],
             idx = idxs
         ),
+
+        expand(
+            "output/{project}/in_vivo_stimuli.csv",
+            project = config["project"]
+        )
         # expand(
         #     "output/{project}/carrier_amplitude/{offset}/{another_carrier}_with_amplitude_of_{carrier}.csv",
         #     project = config["project"],
