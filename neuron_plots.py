@@ -77,13 +77,19 @@ class NeuronPlots:
         fig.tight_layout()
 
     @staticmethod
-    def plot_soma_voltage(neuron, scaled = True):
-        plt.plot(neuron.time, neuron.voltage, linewidth = 0.5, color = "black")
-        plt.xlabel("Time, ms")
-        plt.ylabel("Voltage, mV")
+    def plot_soma_voltage(neuron, scaled = True, ax = None):
+        if ax is None:
+            fig, ax = plt.subplots()
+
+        ax.plot(neuron.time, neuron.voltage, linewidth = 0.5, color = "black")
+        ax.set_xlabel("Time, ms")
+        ax.set_ylabel("Voltage, mV")
+        ax.set_xlim(0, neuron.time.max())
 
         if scaled:
-            plt.ylim(-100, 70)
+            ax.set_ylim(-100, 70)
+
+        return ax
 
     @staticmethod
     def plot_spike_frequency(neuron):

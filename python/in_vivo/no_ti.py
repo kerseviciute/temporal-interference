@@ -1,62 +1,49 @@
 #
-# Performs LTP protocol without EF and with different initial conductance.
+# Run simulation with no TI and in-vivo inputs.
 #
 
 # Include path to neuron classes
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pandas as pd
 import csv
+import math
 from neuron import h
+from datetime import datetime
 from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
 from neuron_utils import NeuronUtils
 
+initial_weight = float(snakemake.wildcards["initial_weight"])
 
-duration = int(snakemake.params["duration"])
-ltp_start = int(snakemake.params["ltp_start"])
-ltp_duration = int(snakemake.params["ltp_duration"])
-ltp_frequency = int(snakemake.params["ltp_frequency"])
+# Read the initial conductance from the file
+with open(snakemake.input["subthreshold_conductance"], "r") as file:
+    initial_conductance = float(file.read())
 
-print("Initializing neuron with random synapses")
-seeds = pd.read_csv(snakemake.input["seeds"])
-seed_idx = int(snakemake.wildcards["idx"])
-seed = int(seeds.iloc[seed_idx].Seed)
+synapse_info = pd.read_csv(snakemake.input["synapse_info"], index_col = 0)
+synapse_info.InitialWeight = initial_weight
+synapse_info.Conductance = initial_conductance
 
-n_synapses = int(snakemake.params["n_synapses"])
-initial_conductance = float(snakemake.wildcards["conductance"])
-initial_weight = float(snakemake.params["initial_weight"])
+# Read in-vivo stimuli
+stimuli = pd.read_csv(snakemake.input["in_vivo"])
+stimulus_counter = -1
 
-test_stimulus_1, test_stimulus_2 = [
-    int(stimulus_time) for stimulus_time in snakemake.params["test_stim_times"]
-]
-
-
-def generate_ltp_spike_times():
-    """Generate Poisson-distributed spike times."""
-    spikes = []
-    t = test_stimulus_1
-    spikes.append(t)
-
-    t = ltp_start
-    while t < ltp_start + ltp_duration:
-        spikes.append(t)
-        isi = int(1000 / ltp_frequency)
-        t += isi
-
-    t = test_stimulus_2
-    spikes.append(t)
-
-    return spikes
-
+# Calculate the simulation duration based on the latest recorded CA3
+# input, rounded to the nearest 0.5 minutes.
+duration = stimuli.max().max()
+duration_minutes = duration / 1000 / 60
+duration_minutes = math.ceil(duration_minutes * 2) / 2
+duration = int(duration_minutes * 60 * 1000)  # ms
 
 # Define the stimulus
-def ltp_stimulus():
-    # Generate spike times
-    spike_times = generate_ltp_spike_times()
+def in_vivo_stimulus():
+    global stimulus_counter
+    stimulus_counter += 1
+
+    spike_times = stimuli[f"{stimulus_counter}"].dropna().tolist()
 
     spike_vec = h.Vector(spike_times)
     stimulus = h.VecStim()
@@ -66,23 +53,19 @@ def ltp_stimulus():
 
 
 neuron = PlasticNeuron(
-    n_synapses = n_synapses,
-    seed = seed,
-    initial_conductance = initial_conductance,
-    initial_weight = initial_weight,
-    generate_stimulus = ltp_stimulus
+    synapse_info = synapse_info,
+    generate_stimulus = in_vivo_stimulus
 )
 
 NeuronUtils.set_stimulus(duration = 0)
 
-print("Starting simulation")
-neuron.run(duration = duration)
+print(f"Running simulation for {duration} ms")
+print(f"Starting at: {datetime.now().strftime('%H:%M:%S')}")
+neuron.run(duration)
+
+print(f"Finished at: {datetime.now().strftime('%H:%M:%S')}")
 
 # Save the data
-
-# Save synapse location info
-synapse_info = neuron.get_final_synapse_info()
-synapse_info.to_csv(snakemake.output["synapse_info"])
 
 # Save spike frequency
 spike_frequency, spike_time = neuron.spike_frequency

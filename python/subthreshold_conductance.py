@@ -1,3 +1,7 @@
+#
+# Determine subthreshold conductance using an LTP protocol.
+#
+
 # Include path to neuron classes
 import os
 import sys
@@ -11,16 +15,22 @@ from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
 from neuron_utils import NeuronUtils
 
+# Read LTP parameters
+
 duration = int(snakemake.params["duration"])
 ltp_start = int(snakemake.params["ltp_start"])
 ltp_duration = int(snakemake.params["ltp_duration"])
 ltp_frequency = int(snakemake.params["ltp_frequency"])
+
+# Read synapse parameters
 
 initial_weight = float(snakemake.params["initial_weight"])
 min_conductance = float(snakemake.params["min_conductance"])
 max_conductance = float(snakemake.params["max_conductance"])
 epsilon = float(snakemake.params["epsilon"])
 min_dendritic_spikes = float(snakemake.params["min_dendritic_spikes"])
+
+# Read stimulation parameters
 
 test_stimulus_1, test_stimulus_2 = [
     int(stimulus_time) for stimulus_time in snakemake.params["test_stim_times"]
@@ -128,7 +138,7 @@ def generate_ltp_spike_times():
     spikes.append(t)
 
     t = ltp_start
-    while t < ltp_start + ltp_duration:
+    while t <= ltp_start + ltp_duration:
         spikes.append(t)
         isi = int(1000 / ltp_frequency)
         t += isi

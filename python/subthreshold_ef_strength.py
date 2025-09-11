@@ -1,3 +1,8 @@
+#
+# Determine subthreshold EF strength.
+# No synapses present.
+#
+
 # Include path to neuron classes
 import os
 import sys
