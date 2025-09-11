@@ -9,6 +9,7 @@ include: "rules/subthreshold_conductance.smk"
 
 include: "rules/in_vivo.smk"
 include: "rules/random_poisson.smk"
+include: "rules/ltp.smk"
 
 include: "rules/figures.smk"
 
@@ -80,16 +81,16 @@ rule all:
         #     "output/{project}/figures/figure3/neuron_with_all_synapses.png",
         #     project = config["project"]
         # ),
-        #
+
         # ### LTP protocol
         # expand(
-        #     "output/{project}/{idx}/subthreshold_conductance/ltp/noTI_{initial_weight}/voltage.csv",
+        #     "output/{project}/{idx}/ltp/noTI_{initial_weight}/voltage.csv",
         #     project = config["project"],
         #     idx = idxs,
         #     initial_weight = 0.1
         # ),
         # expand(
-        #     "output/{project}/{idx}/subthreshold_conductance/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+        #     "output/{project}/{idx}/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
         #     project = config["project"],
         #     idx = idxs,
         #     carrier = [1000],
@@ -98,7 +99,7 @@ rule all:
         #     initial_weight = 0.1
         # ),
         # expand(
-        #     "output/{project}/{idx}/subthreshold_conductance/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+        #     "output/{project}/{idx}/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
         #     project = config["project"],
         #     idx = idxs,
         #     carrier = [1000],
@@ -106,7 +107,8 @@ rule all:
         #     ef_strength = [0.32], # This is the equivalent of 90% subthreshold amplitude for 130 Hz beat frequency
         #     initial_weight = 0.1
         # ),
-        #
+
+        ### Random poisson
         expand(
             "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
             project = config["project"],
