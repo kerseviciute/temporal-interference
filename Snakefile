@@ -135,6 +135,11 @@ rule all:
             offset = [0],
             ef_strength = [0.32],
             initial_weight = 0.1
+        ),
+
+        expand(
+            "output/{project}/random_poisson/summary.gif",
+            project = config["project"]
         )
 
 rule generate_seeds:

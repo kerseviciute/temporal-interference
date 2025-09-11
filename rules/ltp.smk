@@ -1,4 +1,4 @@
-rule subthreshold_conductance_ltp_noTI:
+rule ltp_noTI:
     input:
         subthreshold_conductance = "output/{project}/{idx}/subthreshold_conductance.txt",
         synapse_info = "output/{project}/{idx}/synapse_info.csv"
@@ -17,7 +17,7 @@ rule subthreshold_conductance_ltp_noTI:
     conda: "neuron"
     script: "../python/ltp/no_ti.py"
 
-rule subthreshold_conductance_ltp_TI:
+rule ltp_TI:
     input:
         synapse_info = "output/{project}/{idx}/synapse_info.csv",
         subthreshold_conductance = "output/{project}/{idx}/subthreshold_conductance.txt",
