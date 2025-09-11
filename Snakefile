@@ -110,14 +110,14 @@ rule all:
             "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
-            rate = [5, 10, 30],
+            rate = np.arange(1, 31),
             initial_weight = 0.1
         ),
         expand(
             "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
-            rate = [5, 10, 30],
+            rate = np.arange(1, 31),
             carrier = [1000],
             offset = [5, 130],
             ef_strength = [0.9],
@@ -127,36 +127,7 @@ rule all:
             "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
-            rate = [5, 10, 30],
-            carrier = [1000],
-            offset = [0],
-            ef_strength = [0.32],
-            initial_weight = 0.1
-        ),
-
-        ### Theta bursts (poisson)
-        expand(
-            "output/{project}/{idx}/subthreshold_conductance/theta_poisson/{rate_in_burst}/noTI_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs[:5], # TODO: set to all
-            rate_in_burst = [25, 50],
-            initial_weight = 0.1
-        ),
-        expand(
-            "output/{project}/{idx}/subthreshold_conductance/theta_poisson/{rate_in_burst}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs[:5], # TODO: set to all
-            rate_in_burst = [25, 50],
-            carrier = [1000],
-            offset = [5, 130],
-            ef_strength = [0.9],
-            initial_weight = 0.1
-        ),
-        expand(
-            "output/{project}/{idx}/subthreshold_conductance/theta_poisson/{rate_in_burst}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs[:5], # TODO: set to all
-            rate_in_burst = [25, 50],
+            rate = np.arange(1, 31),
             carrier = [1000],
             offset = [0],
             ef_strength = [0.32],
