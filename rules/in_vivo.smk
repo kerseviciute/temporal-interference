@@ -51,7 +51,6 @@
 #     conda: "neuron"
 #     script: "../python/in_vivo/weight_dynamics.py"
 
-# TODO: use zipped files!
 rule in_vivo_figure_synapse_info_1000:
     input:
         in_vivo = "output/{project}/in_vivo_stimuli.csv",

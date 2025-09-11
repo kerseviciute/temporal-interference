@@ -8,6 +8,7 @@ include: "rules/subthreshold_ef.smk"
 include: "rules/subthreshold_conductance.smk"
 
 include: "rules/in_vivo.smk"
+include: "rules/random_poisson.smk"
 
 include: "rules/figures.smk"
 
@@ -107,14 +108,14 @@ rule all:
         # ),
         #
         expand(
-            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
+            "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
             rate = np.arange(1, 31),
             initial_weight = 0.1
         ),
         expand(
-            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
             rate = np.arange(1, 31),
@@ -124,7 +125,7 @@ rule all:
             initial_weight = 0.1
         ),
         expand(
-            "output/{project}/{idx}/subthreshold_conductance/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
             project = config["project"],
             idx = idxs,
             rate = np.arange(1, 31),
