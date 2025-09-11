@@ -15,7 +15,7 @@ rule subthreshold_conductance_ltp_noTI:
         ltp_frequency = 100, # Hz
         test_stim_times = [100, 2500] # ms
     conda: "neuron"
-    script: "../python/subthreshold_conductance_ltp/no_ti.py"
+    script: "../python/ltp/no_ti.py"
 
 rule subthreshold_conductance_ltp_TI:
     input:
@@ -37,4 +37,4 @@ rule subthreshold_conductance_ltp_TI:
         ltp_frequency = 100, # Hz
         test_stim_times = [100, 2500] # ms
     conda: "neuron"
-    script: "../python/subthreshold_conductance_ltp/ti.py"
+    script: "../python/ltp/ti.py"
