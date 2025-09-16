@@ -109,3 +109,14 @@ rule in_vivo_final_weight:
         final_weights = "output/{project}/{idx}/in-vivo/{type}/final_synapse_weights.csv"
     conda: "neuron"
     script: "../python/in_vivo/in_vivo_final_weight.py"
+
+rule in_vivo_statistics:
+    input:
+        weights = expand(
+            "output/{{project}}/{idx}/in-vivo/{{type}}/synapse_weights.csv",
+            idx = idxs
+        )
+    output:
+        statistics = "output/{project}/in-vivo/{type}/synapse_weight_statistics.csv"
+    conda: "neuron"
+    script: "../python/in_vivo/in_vivo_statistics.py"

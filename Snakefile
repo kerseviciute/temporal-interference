@@ -40,6 +40,12 @@ rule all:
         ),
 
         expand(
+            "output/{project}/in-vivo/{type}/synapse_weight_statistics.csv",
+            project = config["project"],
+            type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
+        ),
+
+        expand(
             "output/{project}/{idx}/in-vivo/compress_voltage.done",
             project = config["project"],
             idx = idxs
