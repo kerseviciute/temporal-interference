@@ -20,9 +20,6 @@ class AbstractNeuron(ABC):
     NOTE: only one neuron per python session can be created.
     """
 
-    # TODO: would it be possible to define the neuron in such a way
-    # TODO: that it is separate from h? (now these are equivalent)
-    # TODO: would be useful to run simulations in parallel
     def __init__(self):
         self.__hoc_dir = os.getcwd()
         self.create_cell()
@@ -120,11 +117,17 @@ class AbstractNeuron(ABC):
     def initialize(self):
         pass
 
-    def run(self, duration = 100):
+    def run(
+            self,
+            duration = 100,  # ms
+            dt = 0.025  # ms
+    ):
+        self.__neuron_init()
         start = time.perf_counter()
 
+        h.dt = dt
         h.tstop = duration
-        h.run()
+        h.continuerun(h.tstop)
 
         end = time.perf_counter()
         elapsed_time = end - start

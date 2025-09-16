@@ -12,7 +12,7 @@ rule subthreshold_ef_strength:
             np.arange(50, 140, 10)
         ]),
         phase = 10,
-        duration = 500,
+        duration = 500, # Should be variable, based on the beat frequency
         initial_amplitude = 1000,
         accuracy = 0.5
     conda: "neuron"
