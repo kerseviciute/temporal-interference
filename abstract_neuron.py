@@ -36,7 +36,6 @@ class AbstractNeuron(ABC):
         # Load cell anatomical and biophysical properties
         self.load_hoc("nrnhoc/cellspec_c62564.hoc")
         self.load_hoc("nrnhoc/biophys.hoc")
-        self.load_hoc("nrnhoc/fluct.hoc")
 
         self.insert_mechanism("extracellular")
         self.insert_mechanism("xtrau")
