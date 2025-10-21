@@ -59,7 +59,7 @@ def get_duration(beat, duration, min_oscillations = 10):
 phi = int(snakemake.wildcards["angle_phi"])
 psi = int(snakemake.wildcards["angle_psi"])
 carrier = int(snakemake.wildcards["carrier"])
-beat = int(snakemake.wildcards["beat"])
+beat = float(snakemake.wildcards["beat"])
 
 phase = int(snakemake.params["phase"])
 duration = int(snakemake.params["duration"])
