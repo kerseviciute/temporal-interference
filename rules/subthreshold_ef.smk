@@ -31,12 +31,12 @@ rule subthreshold_ef_beat:
 
 rule variable_time_subthreshold_ef:
     input:
-        expand(
+        files = expand(
             "output/{{project}}/variable-time-ef-intermediate/{{angle_phi}}_{{angle_psi}}_{{carrier}}_{beat}.csv",
             beat = [0, 0.5] + list(range(1, 10, 1)) + list(range(10, 50, 5)) + list(range(50, 150, 10))
         )
     output:
-        "output/{project}/variable-time-ef/{angle_phi}_{angle_psi}_{carrier}.csv"
+        subthreshold_ef = "output/{project}/variable-time-ef/{angle_phi}_{angle_psi}_{carrier}.csv"
     conda: "neuron"
     script: "../python/subthreshold_ef_merge.py"
 
