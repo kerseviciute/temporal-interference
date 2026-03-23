@@ -15,41 +15,53 @@ include: "rules/figures.smk"
 
 rule all:
     input:
+        ### Random poisson (1k-9k carrier)
         expand(
-            "output/{project}/{idx}/synapse_info.csv",
-            project = config["project"],
-            idx = idxs
-        ),
-
-        expand(
-            "output/{project}/in_vivo_stimuli.csv",
-            project = config["project"]
-        ),
-
-        expand(
-            "output/{project}/{idx}/in-vivo/weight_dynamics_1000.png",
-            project = config["project"],
-            idx = idxs
-        ),
-
-        expand(
-            "output/{project}/{idx}/in-vivo/{type}/final_synapse_weights.csv",
+            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_weights.csv",
             project = config["project"],
             idx = idxs,
-            type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
+            rate = [10],
+            carrier = [1000, 2000, 5000, 9000],
+            offset = [130],
+            ef_strength = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            initial_weight = 0.1
         ),
 
-        expand(
-            "output/{project}/in-vivo/{type}/synapse_weight_statistics.csv",
-            project = config["project"],
-            type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
-        ),
-
-        expand(
-            "output/{project}/{idx}/in-vivo/compress_voltage.done",
-            project = config["project"],
-            idx = idxs
-        ),
+        # expand(
+        #     "output/{project}/{idx}/synapse_info.csv",
+        #     project = config["project"],
+        #     idx = idxs
+        # ),
+        #
+        # expand(
+        #     "output/{project}/in_vivo_stimuli.csv",
+        #     project = config["project"]
+        # ),
+        #
+        # expand(
+        #     "output/{project}/{idx}/in-vivo/weight_dynamics_1000.png",
+        #     project = config["project"],
+        #     idx = idxs
+        # ),
+        #
+        # expand(
+        #     "output/{project}/{idx}/in-vivo/{type}/final_synapse_weights.csv",
+        #     project = config["project"],
+        #     idx = idxs,
+        #     type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
+        # ),
+        #
+        # expand(
+        #     "output/{project}/in-vivo/{type}/synapse_weight_statistics.csv",
+        #     project = config["project"],
+        #     type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
+        # ),
+        #
+        # expand(
+        #     "output/{project}/{idx}/in-vivo/compress_voltage.done",
+        #     project = config["project"],
+        #     idx = idxs
+        # ),
 
         # expand(
         #     "output/{project}/carrier_amplitude/{offset}/{another_carrier}_with_amplitude_of_{carrier}.csv",
@@ -115,38 +127,38 @@ rule all:
         # ),
 
         ### Random poisson
-        expand(
-            "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs,
-            rate = np.arange(1, 31),
-            initial_weight = 0.1
-        ),
-        expand(
-            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs,
-            rate = np.arange(1, 31),
-            carrier = [1000],
-            offset = [5, 130],
-            ef_strength = [0.9],
-            initial_weight = 0.1
-        ),
-        expand(
-            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-            project = config["project"],
-            idx = idxs,
-            rate = np.arange(1, 31),
-            carrier = [1000],
-            offset = [0],
-            ef_strength = [0.32],
-            initial_weight = 0.1
-        ),
+        # expand(
+        #     "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
+        #     project = config["project"],
+        #     idx = idxs,
+        #     rate = np.arange(1, 31),
+        #     initial_weight = 0.1
+        # ),
+        # expand(
+        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+        #     project = config["project"],
+        #     idx = idxs,
+        #     rate = np.arange(1, 31),
+        #     carrier = [1000],
+        #     offset = [5, 130],
+        #     ef_strength = [0.9],
+        #     initial_weight = 0.1
+        # ),
+        # expand(
+        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
+        #     project = config["project"],
+        #     idx = idxs,
+        #     rate = np.arange(1, 31),
+        #     carrier = [1000],
+        #     offset = [0],
+        #     ef_strength = [0.32],
+        #     initial_weight = 0.1
+        # ),
 
-        expand(
-            "output/{project}/random_poisson/summary.gif",
-            project = config["project"]
-        )
+        # expand(
+        #     "output/{project}/random_poisson/summary.gif",
+        #     project = config["project"]
+        # )
 
 rule generate_seeds:
     output:

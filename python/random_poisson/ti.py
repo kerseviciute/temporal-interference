@@ -18,6 +18,18 @@ from abstract_neuron import AbstractNeuron
 from plastic_neuron import PlasticNeuron
 from neuron_utils import NeuronUtils
 
+
+def get_dt(carrier):
+    if carrier == 9000: return 0.0025
+    if carrier == 5000: return 0.0025
+    if carrier == 2000: return 0.025
+    if carrier == 1000: return 0.025
+    if carrier == 0: return 0.025
+
+    print(f"Undefined dt for carrier {carrier}")
+    return None
+
+
 initial_weight = float(snakemake.wildcards["initial_weight"])
 
 # Read the initial conductance from the file
@@ -85,7 +97,7 @@ phase = int(snakemake.params["phase"])
 
 ef_strength = float(snakemake.wildcards["ef_strength"])
 subthreshold = pd.read_csv(snakemake.input["subthreshold_ef"])
-amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[0]
+amplitude = subthreshold.loc[subthreshold.Beat == offset, "SubthresholdAmplitude"].values[0]
 amplitude *= ef_strength
 amplitude = int(amplitude)
 
@@ -93,6 +105,9 @@ print("Random Poisson inputs with TI")
 print(f"carrier = {carrier} Hz")
 print(f"offset = {offset} Hz")
 print(f"amplitude = {amplitude} V/m ({int(ef_strength * 100)}% of original strength)")
+
+dt = get_dt(carrier)
+print(f"Using dt = {dt}")
 
 NeuronUtils.set_stimulus(
     duration = duration,
@@ -105,7 +120,10 @@ NeuronUtils.set_stimulus(
 
 print(f"Running simulation for {duration} ms")
 print(f"Starting at: {datetime.now().strftime('%H:%M:%S')}")
-neuron.run(duration)
+neuron.run(
+    duration = duration,
+    dt = dt
+)
 
 # Save the data
 
@@ -118,13 +136,13 @@ spike_frequency = pd.DataFrame({
 
 spike_frequency.to_csv(snakemake.output["spike_frequency"])
 
-# Save voltage
-voltage = pd.DataFrame({
-    "Voltage": neuron.voltage,
-    "Time": neuron.time
-})
+# # Save voltage
+# voltage = pd.DataFrame({
+#     "Voltage": neuron.voltage,
+#     "Time": neuron.time
+# })
 
-voltage.to_csv(snakemake.output["voltage"])
+# voltage.to_csv(snakemake.output["voltage"])
 
 # Save synaptic weights over time
 synapse_weights = pd.DataFrame({
@@ -142,28 +160,28 @@ synapse_weights = synapse_weights.drop_duplicates(
 
 synapse_weights.to_csv(snakemake.output["synapse_weights"])
 
-# Save voltages at the synaptic locations
+# # Save voltages at the synaptic locations
 
-synapse_voltage = pd.DataFrame({
-    "Time": neuron.time
-})
+# synapse_voltage = pd.DataFrame({
+#     "Time": neuron.time
+# })
 
-for i, synapse in enumerate(neuron.synapses):
-    synapse_voltage[f"Synapse{i}"] = synapse.voltage
+# for i, synapse in enumerate(neuron.synapses):
+#     synapse_voltage[f"Synapse{i}"] = synapse.voltage
 
-synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
+# synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
 
-# Save inputs to the synapse
+# # Save inputs to the synapse
 
-synapse_stimuli = []
+# synapse_stimuli = []
 
-for i, synapse in enumerate(neuron.synapses):
-    synapse_stimuli.append(synapse.stimuli)
+# for i, synapse in enumerate(neuron.synapses):
+#     synapse_stimuli.append(synapse.stimuli)
 
-synapse_stimuli = [list(row) for row in synapse_stimuli]
-max_len = max(len(row) for row in synapse_stimuli)
-padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
+# synapse_stimuli = [list(row) for row in synapse_stimuli]
+# max_len = max(len(row) for row in synapse_stimuli)
+# padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
 
-with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
-    writer = csv.writer(f)
-    writer.writerows(padded_data)
+# with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
+#     writer = csv.writer(f)
+#     writer.writerows(padded_data)
