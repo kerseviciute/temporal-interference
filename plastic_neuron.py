@@ -4,7 +4,7 @@ from abstract_neuron import AbstractNeuron
 from neuron import h
 import random
 from neuron_utils import NeuronUtils
-from synapse import Synapse
+from synapse_ca3 import SynapseCA3
 from copy import deepcopy
 
 
@@ -16,12 +16,11 @@ class PlasticNeuron(AbstractNeuron):
     def __init__(
             self,
             n_synapses = 10,
-            # TODO: allow specifying a list of connection weights (maximal allowed conductances)
-            # TODO: allow specifying a list of initial connection weights
             initial_conductance = 0.00005,
             initial_weight: float = 0,
             min_distance = 100,
-            max_distance = 300,
+            max_distance = 350,
+            max_diameter = 1,  # avoid placing the synapses on the apical trunk
 
             ap_threshold = -20,
 
@@ -63,6 +62,7 @@ class PlasticNeuron(AbstractNeuron):
         self.initial_weight = initial_weight
         self.min_distance = min_distance
         self.max_distance = max_distance
+        self.max_diameter = max_diameter
 
         self.synapses = []
 
@@ -88,6 +88,8 @@ class PlasticNeuron(AbstractNeuron):
         ap_connection.threshold = ap_threshold
         ap_connection.record(self.__spike_times)
 
+        self.__input_stimulus = h.Vector().record(h.soma[0](0.5).xtrau._ref_er)
+
     def get_synapse_info(self):
         return self.synapse_info
 
@@ -105,10 +107,11 @@ class PlasticNeuron(AbstractNeuron):
 
         synapse_info = []
         for synapse in range(self.n_synapses):
-            dendrite_idx, dendrite_loc, distance = NeuronUtils.generate_synapse_location(
+            dendrite_idx, dendrite_loc, distance, diameter = NeuronUtils.generate_synapse_location_apical(
                 n_apical_dendrites = n_apical_dendrites,
                 max_distance = self.max_distance,
-                min_distance = self.min_distance
+                min_distance = self.min_distance,
+                max_diameter = self.max_diameter
             )
 
             delay = self.generate_delay()
@@ -125,6 +128,7 @@ class PlasticNeuron(AbstractNeuron):
                 "Dendrite": [dendrite_idx],
                 "Location": [dendrite_loc],
                 "Distance": [distance],
+                "Diameter": [diameter],
                 "Delay": [delay],
                 "Conductance": [self.initial_conductance],
                 "InitialWeight": [self.initial_weight]
@@ -152,7 +156,7 @@ class PlasticNeuron(AbstractNeuron):
 
         stimulus = self.generate_stimulus()
 
-        synapse = Synapse(
+        synapse = SynapseCA3(
             dendrite_idx = dendrite_idx,
             dendrite_loc = dendrite_loc,
             stimulus = stimulus,
@@ -202,6 +206,12 @@ class PlasticNeuron(AbstractNeuron):
 
         return synapse_info
 
+    def set_initial_conductance(self, conductance):
+        for synapse in self.synapses:
+            synapse.set_initial_conductance(conductance)
+
+        self.synapse_info.Conductance = conductance
+
     @property
     def voltage(self):
         return np.array(self.__v)
@@ -228,3 +238,7 @@ class PlasticNeuron(AbstractNeuron):
             spike_time = []
 
         return instantaneous_freq, spike_time
+
+    @property
+    def input_stimulus(self):
+        return np.array(self.__input_stimulus)
