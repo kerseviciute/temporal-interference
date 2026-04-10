@@ -15,17 +15,29 @@ include: "rules/figures.smk"
 
 rule all:
     input:
-        ### Random poisson (1k-9k carrier)
+        ### Random poisson (5 Hz + 1000 Hz carrier, at varying strengths)
         expand(
-            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
             project = config["project"],
             idx = idxs,
-            rate = [10],
-            carrier = [1000, 2000, 5000, 9000],
-            offset = [130],
-            ef_strength = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            rate = 5,
+            carrier = 1000,
+            beat = 5,
+            ef_strength = [0.5, 0.6, 0.7, 0.8, 0.9],
             initial_weight = 0.1
         ),
+
+        ### Random poisson (1k-9k carrier)
+        # expand(
+        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+        #     project = config["project"],
+        #     idx = idxs,
+        #     rate = [10],
+        #     carrier = [1000, 2000, 5000, 9000],
+        #     offset = [130],
+        #     ef_strength = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+        #     initial_weight = 0.1
+        # ),
 
         # expand(
         #     "output/{project}/{idx}/synapse_info.csv",
