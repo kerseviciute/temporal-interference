@@ -8,3 +8,5 @@ output
 __pycache__
 *.csv
 *.png
+.vscode
+x86_64

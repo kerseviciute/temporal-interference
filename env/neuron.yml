@@ -9,7 +9,6 @@ dependencies:
   - matplotlib 3.8.1
   - scipy 1.11.4
   - pip 23.2.1
-  - libgfortran 5
   - openblas>=0.3
   - pyarrow
   - pip:
@@ -20,3 +19,5 @@ dependencies:
       - scikit-learn==1.6.1
       - statsmodels==0.14.4
       - polars
+      - plotly==5.19.0
+      - setuptools<81
