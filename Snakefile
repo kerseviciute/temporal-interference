@@ -1,6 +1,7 @@
 import numpy as np
 
 idxs = np.arange(0, 20)
+initial_weight = 0.1
 
 configfile: "config.yml"
 
@@ -14,179 +15,92 @@ include: "rules/ltp.smk"
 include: "rules/figures.smk"
 
 rule all:
-    input:
-        ### Random poisson (5 Hz + 1000 Hz carrier, at varying strengths)
-        expand(
-            "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
-            project = config["project"],
-            idx = idxs,
-            rate = 5,
-            carrier = 1000,
-            beat = 5,
-            ef_strength = [0.5, 0.6, 0.7, 0.8, 0.9],
-            initial_weight = 0.1
-        ),
+  input:
+    ##### Random Poisson at 5 Hz
+    ### 5 Hz + 1000 Hz carrier, at varying strengths
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = 5, # Poisson frequency
+      carrier = 1000,
+      beat = 5, # Stimulation frequency
+      ef_strength = [0.1, 0.2, 0.3, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+      initial_weight = initial_weight
+    ),
 
-        ### Random poisson (1k-9k carrier)
-        # expand(
-        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/synapse_weights.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     rate = [10],
-        #     carrier = [1000, 2000, 5000, 9000],
-        #     offset = [130],
-        #     ef_strength = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
-        #     initial_weight = 0.1
-        # ),
+    ### 5 Hz + 9000 Hz carrier, at varying strengths
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = 5, # Poisson frequency
+      carrier = 9000,
+      beat = 5, # Stimulation frequency
+      ef_strength = [0.1, 0.2, 0.3, 0.35, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+      initial_weight = initial_weight
+    ),
 
-        # expand(
-        #     "output/{project}/{idx}/synapse_info.csv",
-        #     project = config["project"],
-        #     idx = idxs
-        # ),
-        #
-        # expand(
-        #     "output/{project}/in_vivo_stimuli.csv",
-        #     project = config["project"]
-        # ),
-        #
-        # expand(
-        #     "output/{project}/{idx}/in-vivo/weight_dynamics_1000.png",
-        #     project = config["project"],
-        #     idx = idxs
-        # ),
-        #
-        # expand(
-        #     "output/{project}/{idx}/in-vivo/{type}/final_synapse_weights.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
-        # ),
-        #
-        # expand(
-        #     "output/{project}/in-vivo/{type}/synapse_weight_statistics.csv",
-        #     project = config["project"],
-        #     type = ["noTI_0.1", "1000_5_0.9_0.1", "1000_130_0.9_0.1", "1000_0_0.32_0.1"]
-        # ),
-        #
-        # expand(
-        #     "output/{project}/{idx}/in-vivo/compress_voltage.done",
-        #     project = config["project"],
-        #     idx = idxs
-        # ),
+    ### 130 Hz + 1000 Hz carrier, at varying strengths
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = 5, # Poisson frequency
+      carrier = 1000,
+      beat = 130, # Stimulation frequency
+      ef_strength = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+      initial_weight = initial_weight
+    ),
 
-        # expand(
-        #     "output/{project}/carrier_amplitude/{offset}/{another_carrier}_with_amplitude_of_{carrier}.csv",
-        #     project = config["project"],
-        #     offset = 5,
-        #     carrier = [1000, 2000, 5000, 9000],
-        #     another_carrier = [1000, 2000, 5000, 9000]
-        # ),
+    ### 1000 Hz pure carrier
+    # expand(
+    #   "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+    #   project = config["project"],
+    #   idx = idxs,
+    #   rate = 5, # Poisson frequency 
+    #   carrier = 1000,
+    #   beat = 0, # Stimulation frequency
+    #   ef_strength = [0.29, 0.32],
+    #   initial_weight = initial_weight
+    # ),
 
-        ### Estimate subthreshold conductance
-        # expand(
-        #     "output/{project}/{idx}/subthreshold_conductance.txt",
-        #     project = config["project"],
-        #     idx = idxs
-        # ),
+    ### No TI
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_voltage.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = 5, # Poisson frequency
+      initial_weight = initial_weight
+    ),
 
-        # # Figure stuff
-        # expand(
-        #     "output/{project}/figures/figure1/voltage_trace_1000_4Hz_{strength}.csv",
-        #     project = config["project"],
-        #     strength = [0.9, 1, 1.1]
-        # ),
-        # expand(
-        #     "output/{project}/figures/figure2/{idx}_{conductance_strength}_voltage.csv",
-        #     project = config["project"],
-        #     idx = [0, 1, 2, 5, 6, 7],
-        #     conductance_strength = [0.9, 1, 1.1]
-        # ),
-        # expand(
-        #     "output/{project}/figures/figure2/{idx}_neuron_with_synapses.png",
-        #     project = config["project"],
-        #     idx = [0, 1, 2, 5, 6, 7]
-        # ),
-        # expand(
-        #     "output/{project}/figures/figure3/neuron_with_all_synapses.png",
-        #     project = config["project"]
-        # ),
-
-        # ### LTP protocol
-        # expand(
-        #     "output/{project}/{idx}/ltp/noTI_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     initial_weight = 0.1
-        # ),
-        # expand(
-        #     "output/{project}/{idx}/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     carrier = [1000],
-        #     offset = [5, 130],
-        #     ef_strength = 0.9,
-        #     initial_weight = 0.1
-        # ),
-        # expand(
-        #     "output/{project}/{idx}/ltp/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     carrier = [1000],
-        #     offset = [0],
-        #     ef_strength = [0.32], # This is the equivalent of 90% subthreshold amplitude for 130 Hz beat frequency
-        #     initial_weight = 0.1
-        # ),
-
-        ### Random poisson
-        # expand(
-        #     "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     rate = np.arange(1, 31),
-        #     initial_weight = 0.1
-        # ),
-        # expand(
-        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     rate = np.arange(1, 31),
-        #     carrier = [1000],
-        #     offset = [5, 130],
-        #     ef_strength = [0.9],
-        #     initial_weight = 0.1
-        # ),
-        # expand(
-        #     "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{offset}_{ef_strength}_{initial_weight}/voltage.csv",
-        #     project = config["project"],
-        #     idx = idxs,
-        #     rate = np.arange(1, 31),
-        #     carrier = [1000],
-        #     offset = [0],
-        #     ef_strength = [0.32],
-        #     initial_weight = 0.1
-        # ),
-
-        # expand(
-        #     "output/{project}/random_poisson/summary.gif",
-        #     project = config["project"]
-        # )
+    ##### Random Poisson inputs at various frequencies
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = np.arange(1, 16, 1), # Poisson frequency TODO: increase to 30 Hz
+      carrier = 1000,
+      beat = 5, # Stimulation frequency
+      ef_strength = [0.6],
+      initial_weight = initial_weight
+    )
 
 rule generate_seeds:
-    output:
-        seeds = "output/{project}/seeds.csv"
-    params:
-        initial_seed = 42,
-        n = 50
-    conda: "neuron"
-    script: "python/generate_seeds.py"
+  output:
+    seeds = "output/{project}/seeds.csv"
+  params:
+    initial_seed = 42,
+    n = 50
+  conda: "neuron"
+  script: "python/generate_seeds.py"
 
 rule generate_synapse_locations:
-    input:
-        seeds = "output/{project}/seeds.csv"
-    output:
-        synapse_info = "output/{project}/{idx}/synapse_info.csv"
-    params:
-        n_synapses = 10
-    conda: "neuron"
-    script: "python/generate_synapse_locations.py"
+  input:
+    seeds = "output/{project}/seeds.csv"
+  output:
+    synapse_info = "output/{project}/{idx}/synapse_info.csv"
+  params:
+    n_synapses = 10
+  conda: "neuron"
+  script: "python/generate_synapse_locations.py"

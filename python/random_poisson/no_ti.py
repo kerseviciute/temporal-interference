@@ -97,13 +97,13 @@ spike_frequency = pd.DataFrame({
 
 spike_frequency.to_csv(snakemake.output["spike_frequency"])
 
-# # Save voltage
-# voltage = pd.DataFrame({
-#     "Voltage": neuron.voltage,
-#     "Time": neuron.time
-# })
+# Save voltage
+voltage = pd.DataFrame({
+    "Voltage": neuron.voltage,
+    "Time": neuron.time
+})
 
-# voltage.to_csv(snakemake.output["voltage"])
+voltage.to_csv(snakemake.output["voltage"])
 
 # Save synaptic weights over time
 synapse_weights = pd.DataFrame({
@@ -121,28 +121,28 @@ synapse_weights = synapse_weights.drop_duplicates(
 
 synapse_weights.to_csv(snakemake.output["synapse_weights"])
 
-# # Save voltages at the synaptic locations
+# Save voltages at the synaptic locations
 
-# synapse_voltage = pd.DataFrame({
-#     "Time": neuron.time
-# })
+synapse_voltage = pd.DataFrame({
+    "Time": neuron.time
+})
 
-# for i, synapse in enumerate(neuron.synapses):
-#     synapse_voltage[f"Synapse{i}"] = synapse.voltage
+for i, synapse in enumerate(neuron.synapses):
+    synapse_voltage[f"Synapse{i}"] = synapse.voltage
 
-# synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
+synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
 
-# # Save inputs to the synapse
+# Save inputs to the synapse
 
-# synapse_stimuli = []
+synapse_stimuli = []
 
-# for i, synapse in enumerate(neuron.synapses):
-#     synapse_stimuli.append(synapse.stimuli)
+for i, synapse in enumerate(neuron.synapses):
+    synapse_stimuli.append(synapse.stimuli)
 
-# synapse_stimuli = [list(row) for row in synapse_stimuli]
-# max_len = max(len(row) for row in synapse_stimuli)
-# padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
+synapse_stimuli = [list(row) for row in synapse_stimuli]
+max_len = max(len(row) for row in synapse_stimuli)
+padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
 
-# with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
-#     writer = csv.writer(f)
-#     writer.writerows(padded_data)
+with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
+    writer = csv.writer(f)
+    writer.writerows(padded_data)
