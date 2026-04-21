@@ -1,6 +1,8 @@
 import numpy as np
 
 rule random_poisson_noTI:
+    wildcard_constraints:
+        rate = 5
     input:
         seeds = "output/{project}/seeds.csv",
         synapse_info = "output/{project}/{idx}/synapse_info.csv",
@@ -10,6 +12,22 @@ rule random_poisson_noTI:
         voltage = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
         synapse_weights = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_weights.csv",
         synapse_voltage = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_voltage.csv",
+        synapse_stimuli = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_stimuli.csv"
+    params:
+        duration = 10 * 1000 # ms, 10 seconds
+    conda: "neuron"
+    script: "../python/random_poisson/no_ti.py"
+
+ruleorder: random_poisson_noTI > random_poisson_noTI_no_synapse_voltage
+rule random_poisson_noTI_no_synapse_voltage:
+    input:
+        seeds = "output/{project}/seeds.csv",
+        synapse_info = "output/{project}/{idx}/synapse_info.csv",
+        subthreshold_conductance = "output/{project}/{idx}/subthreshold_conductance.txt"
+    output:
+        spike_frequency = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/spike_frequency.csv",
+        voltage = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/voltage.csv",
+        synapse_weights = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_weights.csv",
         synapse_stimuli = "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_stimuli.csv"
     params:
         duration = 10 * 1000 # ms, 10 seconds

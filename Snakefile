@@ -79,10 +79,19 @@ rule all:
       "output/{project}/{idx}/random_poisson/{rate}/{carrier}_{beat}_{ef_strength}_{initial_weight}/synapse_weights.csv",
       project = config["project"],
       idx = idxs,
-      rate = np.arange(1, 16, 1), # Poisson frequency TODO: increase to 30 Hz
+      rate = np.arange(1, 26, 1),
       carrier = 1000,
       beat = 5, # Stimulation frequency
-      ef_strength = [0.6],
+      ef_strength = [0.5, 0.9],
+      initial_weight = initial_weight
+    ),
+
+    ##### No TI at various frequencies
+    expand(
+      "output/{project}/{idx}/random_poisson/{rate}/noTI_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      rate = np.arange(1, 26, 1),
       initial_weight = initial_weight
     )
 

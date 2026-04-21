@@ -123,14 +123,15 @@ synapse_weights.to_csv(snakemake.output["synapse_weights"])
 
 # Save voltages at the synaptic locations
 
-synapse_voltage = pd.DataFrame({
-    "Time": neuron.time
-})
+if "synapse_voltage" in snakemake.output:
+    synapse_voltage = pd.DataFrame({
+        "Time": neuron.time
+    })
 
-for i, synapse in enumerate(neuron.synapses):
-    synapse_voltage[f"Synapse{i}"] = synapse.voltage
+    for i, synapse in enumerate(neuron.synapses):
+        synapse_voltage[f"Synapse{i}"] = synapse.voltage
 
-synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
+    synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
 
 # Save inputs to the synapse
 
