@@ -8,6 +8,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
+import numpy as np
 import pandas as pd
 import csv
 import math
@@ -58,24 +59,24 @@ neuron = PlasticNeuron(
 )
 
 carrier = int(snakemake.wildcards["carrier"])
-offset = int(snakemake.wildcards["offset"])
+beat = int(snakemake.wildcards["beat"])
 phase = int(snakemake.params["phase"])
 
 ef_strength = float(snakemake.wildcards["ef_strength"])
 subthreshold = pd.read_csv(snakemake.input["subthreshold_ef"])
-amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[0]
+amplitude = subthreshold.SubthresholdAmplitude.values[0]
 amplitude *= ef_strength
 amplitude = int(amplitude)
 
 print("In-vivo inputs with TI:")
 print(f"carrier = {carrier} Hz")
-print(f"offset = {offset} Hz")
+print(f"beat = {beat} Hz")
 print(f"amplitude = {amplitude} V/m ({int(ef_strength * 100)}% of original strength)")
 
 NeuronUtils.set_stimulus(
     duration = duration,
     frequency1 = carrier,
-    frequency2 = carrier + offset,
+    frequency2 = carrier + beat,
     phase = phase,
     amplitude = amplitude,
     delay = 0
@@ -98,12 +99,13 @@ spike_frequency = pd.DataFrame({
 
 spike_frequency.to_csv(snakemake.output["spike_frequency"])
 
-# Save voltage
+# Save voltage (minute long recording)
 voltage = pd.DataFrame({
     "Voltage": neuron.voltage,
     "Time": neuron.time
 })
 
+voltage = voltage[ voltage.Time <= 60 * 1000 ]
 voltage.to_csv(snakemake.output["voltage"])
 
 # Save synaptic weights over time
@@ -114,18 +116,27 @@ synapse_weights = pd.DataFrame({
 for i, synapse in enumerate(neuron.synapses):
     synapse_weights[f"Synapse{i}"] = synapse.weights
 
+# Save only unique weights
+synapses = [f"Synapse{i}" for i in range(0, 10)]
+weights = synapse_weights[ synapses ].to_numpy()
+mask = np.empty(len(weights), dtype = bool)
+mask[0] = True
+mask[1:] = np.any(weights[1:] != weights[:-1], axis = 1)
+
+synapse_weights = synapse_weights.iloc[mask]
+
 synapse_weights.to_csv(snakemake.output["synapse_weights"])
 
 # Save voltages at the synaptic locations
 
-synapse_voltage = pd.DataFrame({
-    "Time": neuron.time
-})
+# synapse_voltage = pd.DataFrame({
+#     "Time": neuron.time
+# })
 
-for i, synapse in enumerate(neuron.synapses):
-    synapse_voltage[f"Synapse{i}"] = synapse.voltage
+# for i, synapse in enumerate(neuron.synapses):
+#     synapse_voltage[f"Synapse{i}"] = synapse.voltage
 
-synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
+# synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
 
 # Save inputs to the synapse
 
