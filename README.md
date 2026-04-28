@@ -10,7 +10,7 @@ nrnivmodl nrnmod
 
 ```shell
 conda activate snakemake
-snakemake --use-conda --rerun-triggers mtime --cores 4
+snakemake --use-conda --rerun-triggers mtime --cores 4 -n
 ```
 
 ## Notes

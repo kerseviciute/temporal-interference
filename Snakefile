@@ -11,6 +11,7 @@ include: "rules/subthreshold_conductance.smk"
 include: "rules/in_vivo.smk"
 include: "rules/random_poisson.smk"
 include: "rules/ltp.smk"
+include: "rules/post-stimulation.smk"
 
 include: "rules/figures.smk"
 
@@ -102,8 +103,25 @@ rule all:
       idx = idxs,
       carrier = 1000,
       beat = 5, # Stimulation frequency
-      ef_strength = [0.5],
+      ef_strength = [0.9],
       initial_weight = initial_weight
+    ),
+
+    expand(
+       "output/{project}/{idx}/in-vivo/noTI_{initial_weight}/synapse_weights.csv",
+      project = config["project"],
+      idx = idxs,
+      initial_weight = initial_weight
+    ),
+    
+    ##### Evaluate neuron excitability after stimulation
+    expand(
+      "output/{project}/{idx}/post-stimulation/in-vivo/{stimulation}/somatic_voltage.csv",
+      project = config["project"],
+      idx = idxs,
+      stimulation = [
+        "1000_5_0.5_0.1", "1000_5_0.9_0.1", "noTI_0.1"
+      ]
     )
 
 rule generate_seeds:
