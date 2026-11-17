@@ -5,7 +5,7 @@
 : Rhythmic GABAB suppresses conductance and promotes plasticity.
 : When GABAB is low, conductance is high and plasticity is off.
 :
-: Modified by Ieva Kerseviciute 2025-03-19
+: Modified by Ieva Kerseviciute 2025-04-10
 : Change initial synaptic weight.
 
 NEURON {
@@ -37,7 +37,7 @@ PARAMETER {
     pi = 3.14159
 
     wmax = 0.008 (uS)
-    wmin = 0(uS) : not used - use netconn weight instead (BPG)
+    wmin = 0 (uS) : not used - use netconn weight instead (BPG)
 
     d = 0.3 : depression factor (multiplicative to prevent < 0)
     p = 1 : potentiation factor (additive, non-saturating)
@@ -85,7 +85,7 @@ INITIAL {
 	factor = 1/factor
 	gs=1
 	on=1	: initially not plastic
-	tpost =-1e9
+	tpost = -1e9
 	net_send(0, 1)
 	:net_send(gbdel, 3)	: initial GABAB off period
 }

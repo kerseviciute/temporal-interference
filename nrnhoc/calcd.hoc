@@ -111,7 +111,7 @@ proc setfield() {
 	theta = $2*PI/180
 	phi = $3*PI/180
 	setd()
-	// drawfield($1)
+	drawfield($1)
 }
 
 FIELDLENGTH = 100 // for starters
@@ -131,7 +131,7 @@ proc changefield() {
 	theta = $2*PI/180
 	phi = $3*PI/180
 	setd()
-	// redrawfield($1)
+	redrawfield($1)
 }
 
 /*

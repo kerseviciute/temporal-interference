@@ -1,0 +1,154 @@
+#
+# Performs LTP protocol without EF and with different initial conductance.
+#
+
+# Include path to neuron classes
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+import pandas as pd
+import csv
+from neuron import h
+from abstract_neuron import AbstractNeuron
+from plastic_neuron import PlasticNeuron
+from neuron_utils import NeuronUtils
+
+
+duration = int(snakemake.params["duration"])
+ltp_start = int(snakemake.params["ltp_start"])
+ltp_duration = int(snakemake.params["ltp_duration"])
+ltp_frequency = int(snakemake.params["ltp_frequency"])
+
+initial_weight = float(snakemake.wildcards["initial_weight"])
+
+# Read the initial conductance from the file
+with open(snakemake.input["subthreshold_conductance"], "r") as file:
+    initial_conductance = float(file.read())
+
+synapse_info = pd.read_csv(snakemake.input["synapse_info"], index_col = 0)
+synapse_info.InitialWeight = initial_weight
+synapse_info.Conductance = initial_conductance
+
+test_stimulus_1, test_stimulus_2 = [
+    int(stimulus_time) for stimulus_time in snakemake.params["test_stim_times"]
+]
+
+
+def generate_ltp_spike_times():
+    """Generate Poisson-distributed spike times."""
+    spikes = []
+    t = test_stimulus_1
+    spikes.append(t)
+
+    t = ltp_start
+    while t < ltp_start + ltp_duration:
+        spikes.append(t)
+        isi = int(1000 / ltp_frequency)
+        t += isi
+
+    t = test_stimulus_2
+    spikes.append(t)
+
+    return spikes
+
+
+# Define the stimulus
+def ltp_stimulus():
+    # Generate spike times
+    spike_times = generate_ltp_spike_times()
+
+    spike_vec = h.Vector(spike_times)
+    stimulus = h.VecStim()
+    stimulus.play(spike_vec)
+
+    return stimulus
+
+
+neuron = PlasticNeuron(
+    synapse_info = synapse_info,
+    generate_stimulus = ltp_stimulus
+)
+
+carrier = int(snakemake.wildcards["carrier"])
+offset = int(snakemake.wildcards["offset"])
+phase = int(snakemake.params["phase"])
+
+ef_strength = float(snakemake.wildcards["ef_strength"])
+subthreshold = pd.read_csv(snakemake.input["subthreshold_ef"])
+amplitude = subthreshold.loc[subthreshold.Offset == offset, "Amplitude"].values[0]
+amplitude *= ef_strength
+amplitude = int(amplitude)
+
+print("Performing LTP protocol with EF")
+print(f"carrier = {carrier} Hz")
+print(f"offset = {offset} Hz")
+print(f"amplitude = {amplitude} V/m ({int(ef_strength * 100)}% of original strength)")
+
+NeuronUtils.set_stimulus(
+    duration = ltp_duration + 200,
+    frequency1 = carrier,
+    frequency2 = carrier + offset,
+    phase = phase,
+    amplitude = amplitude,
+    delay = ltp_start - 100
+)
+
+print("Starting simulation")
+neuron.run(duration = duration)
+
+# Save the data
+
+# Save spike frequency
+spike_frequency, spike_time = neuron.spike_frequency
+spike_frequency = pd.DataFrame({
+    "Frequency": spike_frequency,
+    "Time": spike_time
+})
+
+spike_frequency.to_csv(snakemake.output["spike_frequency"])
+
+# Save voltage
+voltage = pd.DataFrame({
+    "Voltage": neuron.voltage,
+    "Time": neuron.time
+})
+
+voltage.to_csv(snakemake.output["voltage"])
+
+# Save synaptic weights over time
+synapse_weights = pd.DataFrame({
+    "Time": neuron.time
+})
+
+for i, synapse in enumerate(neuron.synapses):
+    synapse_weights[f"Synapse{i}"] = synapse.weights
+
+synapse_weights.to_csv(snakemake.output["synapse_weights"])
+
+# Save voltages at the synaptic locations
+
+synapse_voltage = pd.DataFrame({
+    "Time": neuron.time
+})
+
+for i, synapse in enumerate(neuron.synapses):
+    synapse_voltage[f"Synapse{i}"] = synapse.voltage
+
+synapse_voltage.to_csv(snakemake.output["synapse_voltage"])
+
+# Save inputs to the synapse
+
+synapse_stimuli = []
+
+for i, synapse in enumerate(neuron.synapses):
+    synapse_stimuli.append(synapse.stimuli)
+
+synapse_stimuli = [list(row) for row in synapse_stimuli]
+max_len = max(len(row) for row in synapse_stimuli)
+padded_data = [row + [""] * (max_len - len(row)) for row in synapse_stimuli]
+
+with open(snakemake.output["synapse_stimuli"], "w", newline = "") as f:
+    writer = csv.writer(f)
+    writer.writerows(padded_data)

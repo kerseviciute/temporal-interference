@@ -1,0 +1,5 @@
+project: temporal-interference-1
+
+figures:
+  - neuron_model.png
+  - neuron_model_with_synapses.png
