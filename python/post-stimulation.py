@@ -5,6 +5,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pandas as pd
+import numpy as np
 import csv
 from neuron import h
 from abstract_neuron import AbstractNeuron
@@ -63,3 +64,10 @@ voltage = pd.DataFrame({
 })
 
 voltage.to_csv(snakemake.output["voltage"])
+
+# Save spike frequency
+spike_times = pd.DataFrame({
+  "Time": neuron.spike_times
+})
+
+spike_times.to_csv(snakemake.output["spike_times"])
